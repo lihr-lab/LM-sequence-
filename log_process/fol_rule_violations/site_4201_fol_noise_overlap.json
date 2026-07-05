@@ -1,0 +1,6318 @@
+{
+  "site_id": "4201",
+  "cluster_file": "D:\\browser\\Innovation\\sequence\\log_process\\process_mining\\site_4201_business_session_clusters.json",
+  "violation_file": "D:\\browser\\Innovation\\sequence\\log_process\\fol_rule_violations\\site_4201_fol_rule_violations.json",
+  "warnings": [],
+  "summary": {
+    "total_session_count": 2875,
+    "detected_session_count": 403,
+    "detected_finding_count": 803,
+    "noise_session_count_declared": 797,
+    "noise_session_count_available": 797,
+    "clustered_session_count_available": 2078,
+    "overlap_session_count": 97,
+    "detected_clustered_session_count": 306,
+    "detected_unknown_session_count": 0,
+    "detected_in_noise_ratio": 0.240695,
+    "noise_detected_ratio": 0.121706
+  },
+  "overlap_findings_summary": {
+    "finding_count": 314,
+    "security_type_count": {
+      "RESOURCE_CONSUMPTION": 45,
+      "BOPLA": 59,
+      "BOLA": 129,
+      "AUTH_BYPASS": 29,
+      "BFLA": 15,
+      "OTHER": 37
+    },
+    "fol_rule_count": {
+      "FOL-C70-S1": 10,
+      "FOL-86-S1": 4,
+      "FOL-C38-S1": 1,
+      "FOL-C3-S1": 17,
+      "FOL-C4-S1": 11,
+      "FOL-C4-S2": 11,
+      "FOL-C5-S1": 10,
+      "FOL-C5-S2": 11,
+      "FOL-C48-S1": 10,
+      "FOL-C66-S2": 14,
+      "FOL-C74-S1": 10,
+      "FOL-C74-S2": 11,
+      "FOL-75-S1": 15,
+      "FOL-75-S2": 3,
+      "FOL-C78-S1": 10,
+      "FOL-C78-S2": 11,
+      "FOL-90-S1": 11,
+      "FOL-C100-S1": 10,
+      "FOL-C107-S1": 18,
+      "FOL-C109-S1": 10,
+      "FOL-C109-S2": 11,
+      "FOL-116-S2": 11,
+      "FOL-118-S1": 10,
+      "FOL-68-S1": 1,
+      "FOL-115-S1": 10,
+      "FOL-C80-S1": 3,
+      "FOL-C48-S2": 2,
+      "FOL-C18-S1": 3,
+      "FOL-C91-S2": 4,
+      "FOL-C8-S1": 1,
+      "FOL-C65-S1": 4,
+      "FOL-13-S1": 2,
+      "FOL-C23-S1": 1,
+      "FOL-79-S1": 1,
+      "FOL-C43-S1": 5,
+      "FOL-C64-S1": 4,
+      "FOL-C106-S1": 2,
+      "FOL-97-S1": 6,
+      "FOL-C73-S1": 4,
+      "FOL-C104-S1": 1,
+      "FOL-37-S1": 2,
+      "FOL-C61-S1": 2,
+      "FOL-C108-S1": 3,
+      "FOL-110-S1": 3,
+      "FOL-51-S1": 2,
+      "FOL-116-S1": 2,
+      "FOL-C16-S2": 1,
+      "FOL-114-S1": 2,
+      "FOL-C8-S2": 1,
+      "FOL-C58-S2": 2
+    },
+    "dimension_count": {
+      "parameter_consistency": 97,
+      "sequence_order": 1793,
+      "sequence_order_and_parameter_consistency": 26
+    }
+  },
+  "non_noise_findings_summary": {
+    "finding_count": 489,
+    "security_type_count": {
+      "OTHER": 112,
+      "BOPLA": 70,
+      "AUTH_BYPASS": 21,
+      "BOLA": 123,
+      "RESOURCE_CONSUMPTION": 150,
+      "BFLA": 13
+    },
+    "fol_rule_count": {
+      "FOL-C43-S1": 15,
+      "FOL-C64-S1": 16,
+      "FOL-C66-S2": 6,
+      "FOL-75-S1": 5,
+      "FOL-97-S1": 8,
+      "FOL-C80-S1": 9,
+      "FOL-17-S1": 20,
+      "FOL-C23-S1": 19,
+      "FOL-C18-S1": 17,
+      "FOL-15-S1": 20,
+      "FOL-C70-S1": 9,
+      "FOL-115-S1": 10,
+      "FOL-75-S2": 17,
+      "FOL-C8-S2": 10,
+      "FOL-116-S1": 5,
+      "FOL-C22-S1": 20,
+      "FOL-C61-S1": 9,
+      "FOL-C35-S1": 15,
+      "FOL-37-S1": 14,
+      "FOL-C73-S1": 6,
+      "FOL-79-S1": 5,
+      "FOL-51-S1": 11,
+      "FOL-86-S1": 9,
+      "FOL-68-S1": 7,
+      "FOL-C58-S2": 4,
+      "FOL-C38-S1": 14,
+      "FOL-C91-S2": 6,
+      "FOL-C16-S2": 1,
+      "FOL-13-S1": 18,
+      "FOL-114-S1": 3,
+      "FOL-C3-S1": 3,
+      "FOL-C65-S1": 2,
+      "FOL-C107-S1": 2,
+      "FOL-C4-S1": 9,
+      "FOL-C4-S2": 9,
+      "FOL-C5-S1": 10,
+      "FOL-C5-S2": 9,
+      "FOL-C48-S1": 10,
+      "FOL-C74-S1": 10,
+      "FOL-C78-S1": 10,
+      "FOL-C78-S2": 9,
+      "FOL-90-S1": 9,
+      "FOL-C100-S1": 10,
+      "FOL-C109-S1": 10,
+      "FOL-C109-S2": 9,
+      "FOL-116-S2": 9,
+      "FOL-118-S1": 10,
+      "FOL-C108-S1": 2,
+      "FOL-110-S1": 3,
+      "FOL-C104-S1": 1,
+      "FOL-C104-S2": 1,
+      "FOL-C74-S2": 9,
+      "FOL-C8-S1": 1,
+      "FOL-C106-S1": 4
+    },
+    "dimension_count": {
+      "sequence_order": 1566,
+      "parameter_consistency": 87,
+      "sequence_order_and_parameter_consistency": 21
+    }
+  },
+  "overlap_sessions": [
+    {
+      "session_id": "sess_4201_10.67.0.119_1781594801",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.12_1781590273",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781577851",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781603362",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781608799",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.150_1781596375",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781592981",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781601734",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781610133",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.197_1781595500",
+      "finding_count": 2,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.1_1781590449",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.1_1781593481",
+      "finding_count": 3,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.1_1781599304",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.1_1781600354",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.208_1781596610",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781575972",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781580865",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.224_1781577762",
+      "finding_count": 2,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781607153",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781608742",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781576719",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781577336",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781580903",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781589544",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.49_1781575062",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.83_1781602446",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781573741",
+      "finding_count": 2,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781603153",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781604417",
+      "finding_count": 5,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-86-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "快速重新加载接口中对象参数替换风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781578031",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C48-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "越权访问高权限接口风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781579893",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781589509",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781592118",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781598931",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781603418",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.104_1781606273",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.19_1781602548",
+      "finding_count": 3,
+      "rules": [
+        "FOL-C104-S1",
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOPLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "工单详情流程中对象参数中途替换风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781596003",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781601072",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.118_1781597001",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.66_1781592461",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C108-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "Confluence 页面编辑流程中的对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.5.129_1781596850",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.108_1781605467",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.110_1781591387",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781575672",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781587631",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781598962",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.66_1781576653",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C48-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "越权访问高权限接口风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.77_1781575179",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781597127",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781604387",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.129_1781592651",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C108-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "Confluence 页面编辑流程中的对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.130_1781592724",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C108-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "Confluence 页面编辑流程中的对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781578310",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781596863",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781582090",
+      "finding_count": 16,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C58-S2",
+        "FOL-C74-S1",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "时间表数据初始化后直接提交资源风险",
+        "测试用例执行中越权访问风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781589408",
+      "finding_count": 19,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-75-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C107-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C3-S1",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "时间表数据初始化后直接提交资源风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源管理接口的越权访问风险",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.161_1781574363",
+      "finding_count": 21,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-75-S1",
+        "FOL-90-S1",
+        "FOL-97-S1",
+        "FOL-C100-S1",
+        "FOL-C107-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C3-S1",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C66-S2",
+        "FOL-C73-S1",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重新加载接口的重复调用风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.161_1781578170",
+      "finding_count": 9,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-90-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781582064",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781577234",
+      "finding_count": 9,
+      "rules": [
+        "FOL-118-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C43-S1",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C64-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理接口中未授权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781590172",
+      "finding_count": 8,
+      "rules": [
+        "FOL-118-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C43-S1",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C64-S1",
+        "FOL-C78-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781591125",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781593718",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781594828",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-97-S1",
+        "FOL-C43-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781595820",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781600333",
+      "finding_count": 1,
+      "rules": [
+        "FOL-114-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781602398",
+      "finding_count": 1,
+      "rules": [
+        "FOL-114-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781571745",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C65-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781579639",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C65-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781604291",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781605251",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C65-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容查看后直接进行敏感操作风险",
+        "快速重新加载接口中参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781581580",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781591129",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781593204",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.125_1781594991",
+      "finding_count": 14,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.125_1781602110",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781593061",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.154_1781577930",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.154_1781596804",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.154_1781605199",
+      "finding_count": 3,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C65-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数替换风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.154_1781620679",
+      "finding_count": 4,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.155_1781595340",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.155_1781599276",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS"
+      ],
+      "scenario_titles": [
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781571317",
+      "finding_count": 7,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-90-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C5-S2",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781578517",
+      "finding_count": 9,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-90-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781597417",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781600859",
+      "finding_count": 20,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-75-S1",
+        "FOL-75-S2",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C107-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C3-S1",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C66-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险",
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781602998",
+      "finding_count": 5,
+      "rules": [
+        "FOL-75-S2",
+        "FOL-C16-S2",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "工单详情流程中对象参数中途替换风险",
+        "测试用例管理中的越权访问风险",
+        "资源管理接口中未授权访问风险",
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781612588",
+      "finding_count": 7,
+      "rules": [
+        "FOL-118-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理接口中未授权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781599383",
+      "finding_count": 8,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-13-S1",
+        "FOL-90-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C5-S2",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险",
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781604317",
+      "finding_count": 2,
+      "rules": [
+        "FOL-13-S1",
+        "FOL-75-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "资源管理接口的越权访问风险",
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.25_1781612848",
+      "finding_count": 2,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.62_1781574712",
+      "finding_count": 2,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.62_1781577504",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.90_1781592189",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行详情页面中绕过校验直接提交修改"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.94_1781593533",
+      "finding_count": 3,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C58-S2",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险",
+        "测试用例执行中越权访问风险"
+      ]
+    }
+  ],
+  "detected_clustered_sessions": [
+    {
+      "session_id": "sess_4201_10.67.0.100_1781602376",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.12_1781576162",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.12_1781577477",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.12_1781599179",
+      "finding_count": 1,
+      "rules": [
+        "FOL-116-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "工单详情流程中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781575078",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781579269",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781590109",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781596238",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.147_1781600822",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781599692",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781603569",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781605032",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781607612",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781611968",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781613432",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781616013",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781619612",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.167_1781623272",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C80-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781538029",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781545349",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781552609",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781559869",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781567249",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781574479",
+      "finding_count": 16,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C22-S1",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781581829",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781589209",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C22-S1",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781596589",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781604029",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781611349",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.215_1781618729",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781583054",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781586412",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781590072",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781593732",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781597332",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.21_1781600992",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C73-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.224_1781590065",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.224_1781595196",
+      "finding_count": 2,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781541331",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781544991",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781548651",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781552311",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781555971",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781559631",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781563291",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.22_1781566891",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C22-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.240_1781589256",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.240_1781589453",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781573324",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781580571",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781599821",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.243_1781601295",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C106-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781578904",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781580584",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781583524",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781587184",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781590784",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781594444",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781598104",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781601764",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781605424",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781609084",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781612744",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781616404",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781620064",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.244_1781623724",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C38-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781583179",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781584264",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.2_1781586184",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.31_1781574868",
+      "finding_count": 2,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.83_1781604318",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.83_1781609066",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.83_1781614483",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781607402",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781609322",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781612682",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781616342",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781619942",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.0.94_1781623542",
+      "finding_count": 1,
+      "rules": [
+        "FOL-86-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.100_1781575390",
+      "finding_count": 3,
+      "rules": [
+        "FOL-C104-S1",
+        "FOL-C104-S2",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "工单处理中绕过列表校验直接提交",
+        "工单详情流程中对象参数中途替换风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.19_1781602785",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781598254",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781599714",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781602294",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781605955",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.20_1781609614",
+      "finding_count": 1,
+      "rules": [
+        "FOL-79-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.99_1781578838",
+      "finding_count": 5,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.13.99_1781588487",
+      "finding_count": 3,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险",
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.16.91_1781571862",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781603259",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781604744",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781607264",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781610924",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781614584",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781618184",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.18.234_1781621844",
+      "finding_count": 1,
+      "rules": [
+        "FOL-68-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781543840",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781547439",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781551039",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781554699",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781569156",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781576416",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781580076",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781583677",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781590996",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781594654",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781598314",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781601974",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781605574",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781609234",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.19.96_1781623813",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C35-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.2.76_1781614910",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C3-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.123_1781587797",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781540170",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781543830",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781547490",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781551150",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781554750",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781558410",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781562010",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781565670",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781569330",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781572990",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781577618",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781578751",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781580671",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.56.212_1781584030",
+      "finding_count": 1,
+      "rules": [
+        "FOL-37-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.101_1781576194",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C108-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "Confluence 页面编辑流程中的对象参数中途替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781576675",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781583808",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781591692",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781592952",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781595352",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781599527",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781600736",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781603187",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781606581",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781608281",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.111_1781611041",
+      "finding_count": 1,
+      "rules": [
+        "FOL-51-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.133_1781597772",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781579849",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781582849",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781586209",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781589809",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781598929",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781600609",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781603489",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781607149",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.134_1781610809",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C61-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781575008",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781590592",
+      "finding_count": 16,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-75-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C66-S2",
+        "FOL-C74-S1",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781595949",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.155_1781601409",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781540916",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781544516",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781548117",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781551717",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781555318",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781558920",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781562520",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781566122",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781569721",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781573321",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781576922",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781580522",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781584122",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781587722",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781591322",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781593860",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781595758",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781597197",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781599717",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.160_1781603318",
+      "finding_count": 1,
+      "rules": [
+        "FOL-17-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中对象参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.161_1781582259",
+      "finding_count": 9,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-90-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工单操作中绕过验证步骤",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.161_1781590442",
+      "finding_count": 1,
+      "rules": [
+        "FOL-97-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.161_1781606484",
+      "finding_count": 15,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-97-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重新加载接口的重复调用风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781573973",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C108-S1",
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "Confluence 页面编辑流程中的对象参数中途替换风险",
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781576064",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781577324",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781580611",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781583964",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781585424",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781587944",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781591604",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781595264",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781598924",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781602584",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781606244",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781609904",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781613565",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781617165",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.251_1781620825",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781538192",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781541792",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781545392",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781548992",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781552592",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781556193",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781559793",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781563393",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781566993",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781570593",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781574193",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781578506",
+      "finding_count": 9,
+      "rules": [
+        "FOL-118-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C43-S1",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C64-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理接口中未授权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781580152",
+      "finding_count": 5,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C43-S1",
+        "FOL-C64-S1",
+        "FOL-C66-S2",
+        "FOL-C74-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理接口中未授权访问风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781586572",
+      "finding_count": 2,
+      "rules": [
+        "FOL-C43-S1",
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA",
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781598519",
+      "finding_count": 5,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-97-S1",
+        "FOL-C43-S1",
+        "FOL-C64-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的重复调用风险",
+        "快速重新加载资源中的对象替换风险",
+        "快速重载接口的参数一致性风险",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.34_1781602490",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C64-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载资源中的对象替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781575548",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C18-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781604264",
+      "finding_count": 1,
+      "rules": [
+        "FOL-114-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781605758",
+      "finding_count": 1,
+      "rules": [
+        "FOL-114-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.6.99_1781610338",
+      "finding_count": 1,
+      "rules": [
+        "FOL-114-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781575344",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C65-S1"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口中参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.109_1781583152",
+      "finding_count": 3,
+      "rules": [
+        "FOL-C107-S1",
+        "FOL-C3-S1",
+        "FOL-C65-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "内容搜索接口中对象参数中途替换风险",
+        "内容查看后直接进行敏感操作风险",
+        "快速重新加载接口中参数替换风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781583651",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781585125",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.110_1781595684",
+      "finding_count": 1,
+      "rules": [
+        "FOL-110-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重新加载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.125_1781592846",
+      "finding_count": 14,
+      "rules": [
+        "FOL-116-S2",
+        "FOL-118-S1",
+        "FOL-90-S1",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C109-S2",
+        "FOL-C4-S1",
+        "FOL-C4-S2",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C78-S1",
+        "FOL-C78-S2"
+      ],
+      "security_types": [
+        "BFLA",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "资源管理 POST 请求中的对象参数一致性风险",
+        "资源管理接口中缺少必要校验步骤",
+        "资源请求中的越权风险",
+        "资源请求中跨项目访问风险",
+        "资源请求接口的越权风险",
+        "资源请求接口的重复调用风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.127_1781574932",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.133_1781580201",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.133_1781591484",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.151_1781577642",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行详情页面中绕过校验直接提交修改"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781539307",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781542908",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781546508",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781550108",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781553708",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781557308",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781560908",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781564508",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781568108",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781571708",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781575308",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781578909",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781582509",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781586109",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781589709",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781594411",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781595491",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781597381",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C23-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781600711",
+      "finding_count": 2,
+      "rules": [
+        "FOL-75-S2",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "资源管理接口中缺少认证参数风险",
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.153_1781610202",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781538200",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781545441",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781552644",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781559847",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781567050",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781574254",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781581458",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781588662",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781595865",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781603075",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781610281",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.18_1781617483",
+      "finding_count": 1,
+      "rules": [
+        "FOL-75-S2"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.191_1781597857",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS"
+      ],
+      "scenario_titles": [
+        "看板访问中缺少上下文验证"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.222_1781573245",
+      "finding_count": 5,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-75-S1",
+        "FOL-C66-S2",
+        "FOL-C70-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "时间表数据初始化后直接提交资源风险",
+        "看板访问中缺少上下文验证",
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781608218",
+      "finding_count": 12,
+      "rules": [
+        "FOL-118-S1",
+        "FOL-75-S2",
+        "FOL-C100-S1",
+        "FOL-C109-S1",
+        "FOL-C23-S1",
+        "FOL-C48-S1",
+        "FOL-C5-S1",
+        "FOL-C5-S2",
+        "FOL-C74-S1",
+        "FOL-C74-S2",
+        "FOL-C78-S1",
+        "FOL-C91-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA",
+        "BOPLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "单一接口调用中的参数一致性风险",
+        "工单操作中绕过验证步骤",
+        "工单评论查看流程中的对象参数一致性风险",
+        "工单详情流程中对象参数中途替换风险",
+        "快速重载接口的参数一致性风险",
+        "看板访问中缺少上下文验证",
+        "资源管理接口中未授权访问风险",
+        "重复调用快速重新加载接口的风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.248_1781622618",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C16-S2"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "测试用例管理中的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781541243",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781544843",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781548503",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781552163",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781555823",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781559483",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781563083",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781566683",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781570283",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781573943",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781581203",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781584863",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781588463",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781592123",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781595723",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781603043",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781610363",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.24_1781614024",
+      "finding_count": 1,
+      "rules": [
+        "FOL-13-S1"
+      ],
+      "security_types": [
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "重复调用快速重新加载接口"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.51_1781602455",
+      "finding_count": 2,
+      "rules": [
+        "FOL-75-S1",
+        "FOL-C66-S2"
+      ],
+      "security_types": [
+        "AUTH_BYPASS",
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "资源管理接口中缺少认证参数风险",
+        "资源管理接口的越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781541020",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781544619",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781548219",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781551819",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781555418",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781559078",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781562678",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781566278",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781569877",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781573477",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781577137",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781580737",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781584336",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781587936",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781591536",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781595136",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781598796",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781602352",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781603460",
+      "finding_count": 3,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-15-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "OTHER",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "快速重载接口的参数一致性风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781603836",
+      "finding_count": 1,
+      "rules": [
+        "FOL-15-S1"
+      ],
+      "security_types": [
+        "OTHER"
+      ],
+      "scenario_titles": [
+        "快速重载接口的参数一致性风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.70_1781614917",
+      "finding_count": 1,
+      "rules": [
+        "FOL-115-S1"
+      ],
+      "security_types": [
+        "BOLA"
+      ],
+      "scenario_titles": [
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.85_1781575161",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C58-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行中越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.85_1781590066",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.85_1781593725",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.85_1781597877",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C8-S2"
+      ],
+      "security_types": [
+        "BOPLA"
+      ],
+      "scenario_titles": [
+        "测试用例步骤状态更新未经过前置校验"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.94_1781573408",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C58-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行中越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.94_1781573867",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C58-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行中越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.94_1781574506",
+      "finding_count": 1,
+      "rules": [
+        "FOL-C58-S2"
+      ],
+      "security_types": [
+        "BFLA"
+      ],
+      "scenario_titles": [
+        "测试用例执行中越权访问风险"
+      ]
+    },
+    {
+      "session_id": "sess_4201_10.67.9.94_1781598136",
+      "finding_count": 3,
+      "rules": [
+        "FOL-115-S1",
+        "FOL-116-S1",
+        "FOL-C70-S1"
+      ],
+      "security_types": [
+        "BOLA",
+        "RESOURCE_CONSUMPTION"
+      ],
+      "scenario_titles": [
+        "工作板数据获取接口的重复调用风险",
+        "工单详情流程中对象参数中途替换风险",
+        "时间表数据初始化后直接提交资源风险"
+      ]
+    }
+  ],
+  "detected_unknown_sessions": []
+}
