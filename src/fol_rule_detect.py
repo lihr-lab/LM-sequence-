@@ -17,6 +17,12 @@ STEP_RE = re.compile(r"^Step\s+\d+:\s+(?P<body>.+)$")
 SESSION_HEADER_RE = re.compile(r"^===\s+(?P<header>.*?)\s*===")
 STATUS_SUFFIX_RE = re.compile(r"\s+\[(?P<status>\d+)(?:\s+.*)?\]?$")
 BODY_SPLIT_RE = re.compile(r"\s+BODY\s+", re.I)
+FRONTEND_NOISE_RE = re.compile(
+    r"\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|map)(?:$|\?)"
+    r"|/s/|/download/resources/|/download/batch/|/images/|/static/|/assets/"
+    r"|/rest/wrm/|/webResources/|/useravatar|/avatar|/favicon",
+    re.I,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,7 +34,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--site-id", required=True)
     parser.add_argument("--bucket", default="all", choices=["short_1_2", "main_3_50", "long_51_plus", "all"])
     parser.add_argument("--max-sessions", type=int, default=0, help="0 means no limit.")
-    parser.add_argument("--max-evidence-per-rule", type=int, default=20)
+    parser.add_argument("--max-evidence-per-rule", type=int, default=0, help="0 means no per-rule evidence limit.")
+    parser.add_argument("--include-frontend-noise", action="store_true", help="Do not filter static/frontend resource requests.")
     return parser.parse_args()
 
 
@@ -70,6 +77,10 @@ def request_api(token: str) -> str:
         return clean_token(token).split("?", 1)[0].strip()
     parsed = urlparse("http://local" + target if target.startswith("/") else target)
     return f"{method} {unquote(parsed.path or target)}"
+
+
+def is_frontend_noise_api(api: str) -> bool:
+    return bool(FRONTEND_NOISE_RE.search(str(api or "")))
 
 
 def request_params(token: str) -> dict[str, list[str]]:
@@ -167,6 +178,23 @@ def session_from_json(session_obj: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def apply_business_focus_filter(session: dict[str, Any], include_frontend_noise: bool) -> dict[str, Any]:
+    if include_frontend_noise:
+        return session
+    raw_sequence = []
+    api_sequence = []
+    for raw, api in zip(session.get("raw_sequence", []), session.get("api_sequence", [])):
+        if is_frontend_noise_api(api):
+            continue
+        raw_sequence.append(raw)
+        api_sequence.append(api)
+    filtered = dict(session)
+    filtered["raw_sequence"] = raw_sequence
+    filtered["api_sequence"] = api_sequence
+    filtered["filtered_frontend_noise_count"] = len(session.get("api_sequence", [])) - len(api_sequence)
+    return filtered
+
+
 def iter_compressed_txt(path: Path):
     site_id = infer_site_id_from_name(path)
     current: list[str] = []
@@ -251,6 +279,25 @@ def activity_map(rule: dict[str, Any]) -> dict[str, str]:
     return result
 
 
+def rule_related_apis(rule: dict[str, Any]) -> set[str]:
+    apis = set()
+    for api in activity_map(rule).values():
+        if api:
+            apis.add(api)
+    for item in rule.get("openapi_summary", []) or []:
+        if isinstance(item, dict) and item.get("api"):
+            apis.add(str(item["api"]))
+    summary = rule.get("scenario_summary", {})
+    for key in ("normal_sequence", "possible_violation_sequence"):
+        values = summary.get(key, [])
+        if isinstance(values, list):
+            for value in values:
+                api = request_api(str(value))
+                if api:
+                    apis.add(api)
+    return {api for api in apis if api}
+
+
 def api_positions(session: dict[str, Any], api: str) -> list[int]:
     if not api:
         return []
@@ -327,9 +374,16 @@ def parameter_name_matches(observed: str, wanted: str) -> bool:
     return observed_l == wanted_l or observed_l.endswith("." + wanted_l) or observed_l.endswith("]" + wanted_l)
 
 
-def collect_param_values(session: dict[str, Any], wanted_params: list[str]) -> dict[str, list[dict[str, Any]]]:
+def collect_param_values(
+    session: dict[str, Any],
+    wanted_params: list[str],
+    allowed_apis: set[str],
+) -> dict[str, list[dict[str, Any]]]:
     collected: dict[str, list[dict[str, Any]]] = {name: [] for name in wanted_params}
     for index, token in enumerate(session.get("raw_sequence", [])):
+        api = request_api(token)
+        if allowed_apis and api not in allowed_apis:
+            continue
         params = request_params(token)
         for observed_name, values in params.items():
             for wanted in wanted_params:
@@ -338,7 +392,7 @@ def collect_param_values(session: dict[str, Any], wanted_params: list[str]) -> d
                         collected[wanted].append(
                             {
                                 "step": index + 1,
-                                "api": request_api(token),
+                                "api": api,
                                 "request": token,
                                 "value": value,
                             }
@@ -346,29 +400,94 @@ def collect_param_values(session: dict[str, Any], wanted_params: list[str]) -> d
     return collected
 
 
+def normalize_scope_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if value:
+        return [str(value).strip()]
+    return []
+
+
+def non_empty_values(items: list[dict[str, Any]]) -> list[str]:
+    return sorted({str(item.get("value", "")) for item in items if str(item.get("value", "")) not in {"", "null", "undefined"}})
+
+
+def evidence_steps(items: list[dict[str, Any]]) -> list[int]:
+    return [int(item["step"]) for item in items if "step" in item]
+
+
 def detect_parameter_consistency(rule: dict[str, Any], expr: dict[str, Any], session: dict[str, Any]) -> list[dict[str, Any]]:
     scope = expr.get("scope", {}) if isinstance(expr.get("scope"), dict) else {}
-    params = scope.get("parameters") or rule.get("scenario_summary", {}).get("parameter_objects", [])
-    if not isinstance(params, list):
-        params = [params] if params else []
-    wanted_params = [str(item).strip() for item in params if str(item).strip()]
+    if "parameter" in scope and isinstance(scope.get("parameter"), dict):
+        scope = scope["parameter"]
+    params = normalize_scope_list(scope.get("parameters") or rule.get("scenario_summary", {}).get("parameter_objects", []))
+    wanted_params = [item for item in params if item]
     if not wanted_params:
         return []
-    collected = collect_param_values(session, wanted_params)
+
+    target_apis = normalize_scope_list(scope.get("target_api_scope", scope.get("api_scope", [])))
+    context_apis = normalize_scope_list(scope.get("context_api_scope", []))
+    target_api_set = set(target_apis)
+    context_api_set = set(context_apis)
+    if not target_api_set:
+        return []
+
+    target_values = collect_param_values(session, wanted_params, target_api_set)
+    context_values = collect_param_values(session, wanted_params, context_api_set) if context_api_set else {name: [] for name in wanted_params}
+    dependency = str(scope.get("dependency_relation", "") or "").strip().lower()
+    expected_source = str(scope.get("expected_source", "") or "").strip().lower()
+    requires_context = bool(context_api_set) and (
+        dependency in {"derived_from_context_api", "bound_to_upstream_context"}
+        or expected_source in {"upstream_context_api", "normal_sequence_context", "upstream_context"}
+    )
     hits = []
-    for name, items in collected.items():
-        distinct_values = sorted({item["value"] for item in items if item.get("value") not in {"", "null", "undefined"}})
-        if len(distinct_values) >= 2:
+    for name in wanted_params:
+        target_items = target_values.get(name, [])
+        context_items = context_values.get(name, [])
+        target_distinct = non_empty_values(target_items)
+        context_distinct = non_empty_values(context_items)
+
+        if len(target_distinct) >= 2:
             hits.append(
                 {
                     "reason": "parameter_value_switch",
                     "parameter": name,
-                    "distinct_value_count": len(distinct_values),
-                    "values": distinct_values[:20],
-                    "steps": [item["step"] for item in items],
-                    "examples": items[:10],
+                    "distinct_value_count": len(target_distinct),
+                    "values": target_distinct[:20],
+                    "steps": evidence_steps(target_items),
+                    "examples": target_items[:10],
                 }
             )
+        if requires_context and target_distinct and not context_distinct:
+            hits.append(
+                {
+                    "reason": "parameter_context_missing",
+                    "parameter": name,
+                    "target_apis": target_apis,
+                    "context_apis": context_apis,
+                    "target_values": target_distinct[:20],
+                    "target_steps": evidence_steps(target_items),
+                    "examples": target_items[:10],
+                }
+            )
+            continue
+        if requires_context and target_distinct and context_distinct:
+            unexpected_values = [value for value in target_distinct if value not in set(context_distinct)]
+            if unexpected_values:
+                hits.append(
+                    {
+                        "reason": "parameter_not_from_context",
+                        "parameter": name,
+                        "unexpected_target_values": unexpected_values[:20],
+                        "context_values": context_distinct[:20],
+                        "target_apis": target_apis,
+                        "context_apis": context_apis,
+                        "target_steps": evidence_steps(target_items),
+                        "context_steps": evidence_steps(context_items),
+                        "target_examples": target_items[:10],
+                        "context_examples": context_items[:10],
+                    }
+                )
     return hits
 
 
@@ -385,7 +504,8 @@ def detect_rule_on_session(rule: dict[str, Any], session: dict[str, Any]) -> lis
             hits = detect_parameter_consistency(rule, expr, session)
         elif dimension == "sequence_order_and_parameter_consistency":
             seq_hits = detect_sequence_order(rule, {"scope": expr.get("scope", {}).get("sequence", {}), "dimension": "sequence_order"}, session)
-            param_hits = detect_parameter_consistency(rule, {"scope": {"parameters": expr.get("scope", {}).get("parameters", [])}}, session)
+            param_scope = expr.get("scope", {}).get("parameter", expr.get("scope", {}))
+            param_hits = detect_parameter_consistency(rule, {"scope": param_scope}, session)
             if seq_hits and param_hits:
                 hits = [{"reason": "combined_sequence_parameter_risk", "sequence_hits": seq_hits, "parameter_hits": param_hits}]
         for hit in hits:
@@ -415,7 +535,52 @@ def summarize_hit(rule: dict[str, Any], session: dict[str, Any], expr_hits: list
         "business_pattern_name": source.get("business_pattern_name", ""),
         "overall_reason": summary.get("overall_reason", ""),
         "expression_hits": expr_hits,
+        "session_context": {
+            "raw_sequence": session.get("raw_sequence", []),
+            "api_sequence": session.get("api_sequence", []),
+            "filtered_frontend_noise_count": session.get("filtered_frontend_noise_count", 0),
+        },
     }
+
+
+def group_findings_by_rule(findings: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    hit_session_sets: dict[str, set[str]] = {}
+    for finding in findings:
+        fol_id = str(finding.get("fol_id", ""))
+        if not fol_id:
+            continue
+        session_id = str(finding.get("session_id", ""))
+        bucket = grouped.setdefault(
+            fol_id,
+            {
+                "fol_id": fol_id,
+                "scenario_id": finding.get("scenario_id", ""),
+                "scenario_title": finding.get("scenario_title", ""),
+                "security_type": finding.get("security_type", ""),
+                "risk_level": finding.get("risk_level", ""),
+                "hit_count": 0,
+                "hit_session_count": 0,
+                "hit_session_ids": [],
+                "hit_sessions": [],
+            },
+        )
+        hit_session_sets.setdefault(fol_id, set())
+        if session_id:
+            hit_session_sets[fol_id].add(session_id)
+        bucket["hit_count"] += 1
+        bucket["hit_sessions"].append(
+            {
+                "session_id": session_id,
+                "source_ip": finding.get("source_ip", ""),
+                "expression_hits": finding.get("expression_hits", []),
+                "session_context": finding.get("session_context", {}),
+            }
+        )
+    for fol_id, session_ids in hit_session_sets.items():
+        grouped[fol_id]["hit_session_ids"] = sorted(session_ids)
+        grouped[fol_id]["hit_session_count"] = len(session_ids)
+    return grouped
 
 
 def main() -> None:
@@ -426,14 +591,25 @@ def main() -> None:
     output_dir = Path(args.output_dir) if args.output_dir else base_dir / "fol_rule_violations"
 
     fol_payload = read_json(fol_file)
-    rules = [item for item in fol_payload.get("expressions", []) if isinstance(item, dict) and item.get("status") == "generated"]
+    rules = [
+        item
+        for item in fol_payload.get("expressions", [])
+        if isinstance(item, dict)
+        and item.get("status") == "generated"
+        and not item.get("refinement", {}).get("disabled")
+    ]
     files = discover_input_files(input_dir, args.bucket, args.site_id)
     if not files:
         raise FileNotFoundError(f"no input sequence files found in {input_dir}")
 
     sessions = []
+    filtered_frontend_noise_count = 0
     for session in iter_sessions(files):
         if args.site_id and session.get("site_id") != args.site_id:
+            continue
+        session = apply_business_focus_filter(session, args.include_frontend_noise)
+        filtered_frontend_noise_count += int(session.get("filtered_frontend_noise_count", 0) or 0)
+        if not session.get("api_sequence"):
             continue
         sessions.append(session)
         if args.max_sessions > 0 and len(sessions) >= args.max_sessions:
@@ -441,25 +617,38 @@ def main() -> None:
 
     findings = []
     rule_hit_counter: Counter[str] = Counter()
+    emitted_rule_counter: Counter[str] = Counter()
     for session in sessions:
         for rule in rules:
             expr_hits = detect_rule_on_session(rule, session)
             if not expr_hits:
                 continue
             rule_id = str(rule.get("fol_id", ""))
-            if rule_hit_counter[rule_id] >= args.max_evidence_per_rule:
-                continue
             rule_hit_counter[rule_id] += 1
+            if args.max_evidence_per_rule > 0 and emitted_rule_counter[rule_id] >= args.max_evidence_per_rule:
+                continue
+            emitted_rule_counter[rule_id] += 1
             findings.append(summarize_hit(rule, session, expr_hits))
 
+    rule_findings = group_findings_by_rule(findings)
+    hit_session_ids = sorted({str(finding.get("session_id", "")) for finding in findings if str(finding.get("session_id", ""))})
     payload = {
         "site_id": args.site_id,
         "fol_file": str(fol_file),
         "input_dir": str(input_dir),
         "session_count": len(sessions),
+        "frontend_noise_filter": {
+            "enabled": not args.include_frontend_noise,
+            "filtered_event_count": filtered_frontend_noise_count,
+        },
         "rule_count": len(rules),
         "finding_count": len(findings),
+        "hit_session_count": len(hit_session_ids),
+        "hit_session_ids": hit_session_ids,
         "rule_hit_count": dict(rule_hit_counter),
+        "emitted_rule_evidence_count": dict(emitted_rule_counter),
+        "max_evidence_per_rule": args.max_evidence_per_rule,
+        "rule_findings": rule_findings,
         "findings": findings,
     }
     output_path = output_dir / f"site_{args.site_id}_fol_rule_violations.json"

@@ -13,8 +13,8 @@ from typing import Any
 from tqdm import tqdm
 
 
-DEFAULT_INPUT = "/home/syslog-project/logs/sequence/log_process/url_dataset.jsonl"
-DEFAULT_OUTPUT_DIR = "/home/syslog-project/logs/sequence/log_process"
+DEFAULT_INPUT = "D:\\browser\\Innovation\\sequence\\log_process\\log_sequence\\url_dataset.jsonl"
+DEFAULT_OUTPUT_DIR = "D:\\browser\\Innovation\\sequence\\log_process\\log_sequence"
 DEFAULT_SESSION_TIMEOUT_SEC = 600
 DEFAULT_MAX_SESSION_DURATION_SEC = 7200
 DEFAULT_MAX_EVENTS_PER_SESSION = 500

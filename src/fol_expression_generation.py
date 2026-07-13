@@ -191,6 +191,22 @@ def related_apis(scenario: dict[str, Any]) -> list[str]:
             api = normalize_api(str(api))
             if api:
                 apis.append(api)
+        for key in ("normal_sequence_pattern", "possible_violation_sequence_pattern", "risky_sequence_pattern"):
+            values = sequence_risk.get(key, [])
+            if isinstance(values, list):
+                for api in values:
+                    api = normalize_api(str(api))
+                    if re.match(r"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+", api, re.I):
+                        apis.append(api)
+    parameter_risk = scenario.get("parameter_consistency_risk", {})
+    if isinstance(parameter_risk, dict):
+        for key in ("target_apis", "context_apis", "normal_parameter_sequence"):
+            values = parameter_risk.get(key, [])
+            if isinstance(values, list):
+                for api in values:
+                    api = normalize_api(str(api))
+                    if api:
+                        apis.append(api)
     return sorted(set(apis))
 
 
@@ -578,6 +594,35 @@ def should_combine_sequence_and_parameter(scenario: dict[str, Any]) -> bool:
     )
 
 
+def scenario_risk_type(scenario: dict[str, Any]) -> str:
+    risk_type = str(scenario.get("risk_type") or "").strip().lower()
+    return risk_type if risk_type in {"sequence_order", "parameter_consistency", "both"} else "both"
+
+
+def has_sequence_risk_block(scenario: dict[str, Any]) -> bool:
+    block = scenario.get("sequence_order_risk", {})
+    if not isinstance(block, dict) or not block:
+        return False
+    normal = block.get("normal_sequence_pattern", [])
+    risky = block.get("possible_violation_sequence_pattern", block.get("risky_sequence_pattern", []))
+    if not isinstance(normal, list):
+        normal = []
+    if not isinstance(risky, list):
+        risky = []
+    return bool(normal or risky or str(block.get("missing_or_reordered_step", "")).strip())
+
+
+def has_parameter_risk_block(scenario: dict[str, Any]) -> bool:
+    block = scenario.get("parameter_consistency_risk", {})
+    if not isinstance(block, dict) or not block:
+        return False
+    params = normalize_param_list(block.get("key_parameters_or_objects", []))
+    risk_form = str(block.get("risky_parameter_form") or "").strip()
+    target_apis = normalize_param_list(block.get("target_apis", []))
+    context_apis = normalize_param_list(block.get("context_apis", []))
+    return bool(params or risk_form or target_apis or context_apis)
+
+
 def has_real_parameter_risk(parameter_block: dict[str, Any]) -> bool:
     key_params = parameter_block.get("key_parameters_or_objects", [])
     if not isinstance(key_params, list):
@@ -602,12 +647,240 @@ def has_real_parameter_risk(parameter_block: dict[str, Any]) -> bool:
     return True
 
 
+def has_actionable_parameter_scope(p_scope: dict[str, Any]) -> bool:
+    params = normalize_param_list(p_scope.get("parameters", []))
+    target_apis = normalize_param_list(p_scope.get("target_api_scope", []))
+    context_apis = normalize_param_list(p_scope.get("context_api_scope", []))
+    dependency = str(p_scope.get("dependency_relation", "") or "").strip().lower()
+    expected_source = str(p_scope.get("expected_source", "") or "").strip().lower()
+    if not params or not target_apis:
+        return False
+    if dependency in {"", "unknown"} and expected_source in {"", "unknown"}:
+        return False
+    if dependency in {"derived_from_context_api", "bound_to_upstream_context"} and not context_apis:
+        return False
+    return True
+
+
+def normalize_param_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if value:
+        return [str(value).strip()]
+    return []
+
+
+def normalize_record_list(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+    records = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        record = {str(key): str(val).strip() for key, val in item.items() if str(val).strip()}
+        if record:
+            records.append(record)
+    return records
+
+
+def derive_parameter_occurrences(
+    params: list[str],
+    target_apis: list[str],
+    context_apis: list[str],
+) -> list[dict[str, str]]:
+    records = []
+    for param in params:
+        for api in context_apis:
+            records.append(
+                {
+                    "parameter": param,
+                    "api": api,
+                    "location": "response_or_inferred",
+                    "role": "context_source",
+                    "evidence": "参数可能来自上游上下文或响应结果，需要结合 OpenAPI 或原始请求确认。",
+                }
+            )
+        for api in target_apis:
+            records.append(
+                {
+                    "parameter": param,
+                    "api": api,
+                    "location": "unknown",
+                    "role": "target_parameter",
+                    "evidence": "参数用于约束目标 API，但具体位置需要结合 OpenAPI 或原始请求确认。",
+                }
+            )
+    return records
+
+
+def derive_context_binding(
+    params: list[str],
+    target_apis: list[str],
+    context_apis: list[str],
+    dependency_relation: str,
+) -> list[dict[str, str]]:
+    if not params or not target_apis or not context_apis:
+        return []
+    records = []
+    relation = dependency_relation or "bound_to_upstream_context"
+    for param in params:
+        for source_api in context_apis:
+            for target_api in target_apis:
+                records.append(
+                    {
+                        "source_api": source_api,
+                        "target_api": target_api,
+                        "parameter": param,
+                        "relation": relation,
+                        "explanation": f"{param} 应由上游上下文约束目标 API，避免中途替换或脱离上下文。",
+                    }
+                )
+    return records
+
+
+def api_list_from_activity(activity_model: dict[str, Any]) -> list[str]:
+    output = []
+    for item in activity_model.get("activities", []) or []:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if label and re.match(r"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+", label, re.I) and label not in output:
+            output.append(label)
+    return output
+
+
+def api_list_from_context(context: list[dict[str, Any]]) -> list[str]:
+    output = []
+    for item in context:
+        if isinstance(item, dict) and item.get("api"):
+            api = str(item["api"]).strip()
+            if api and api not in output:
+                output.append(api)
+    return output
+
+
+def normal_sequence_apis(scenario: dict[str, Any]) -> list[str]:
+    sequence_block = scenario.get("sequence_order_risk", {}) if isinstance(scenario.get("sequence_order_risk"), dict) else {}
+    values = sequence_block.get("normal_sequence_pattern", [])
+    if not isinstance(values, list):
+        return []
+    output = []
+    for value in values:
+        text = str(value or "").strip()
+        if re.match(r"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+", text, re.I) and text not in output:
+            output.append(text)
+    return output
+
+
+def split_context_and_target_apis(all_apis: list[str], normal_apis: list[str]) -> tuple[list[str], list[str]]:
+    if not all_apis:
+        return [], []
+    target_apis = [api for api in all_apis if api in normal_apis] or all_apis[-1:]
+    first_target_index = min((normal_apis.index(api) for api in target_apis if api in normal_apis), default=len(normal_apis))
+    context_apis = [api for api in normal_apis[:first_target_index] if api not in target_apis]
+    if not context_apis and len(normal_apis) > 1:
+        context_apis = [api for api in normal_apis if api not in target_apis]
+    return context_apis, target_apis
+
+
+def parameter_scope(
+    scenario: dict[str, Any],
+    parameter_block: dict[str, Any],
+    activity_model: dict[str, Any],
+    context: list[dict[str, Any]],
+) -> dict[str, Any]:
+    params = normalize_param_list(parameter_block.get("key_parameters_or_objects", []))
+    explicit_target_apis = normalize_param_list(parameter_block.get("target_apis", []))
+    explicit_context_apis = normalize_param_list(parameter_block.get("context_apis", []))
+    all_apis = api_list_from_context(context) or api_list_from_activity(activity_model)
+    normal_apis = normal_sequence_apis(scenario) or api_list_from_activity(activity_model)
+    context_apis, target_apis = split_context_and_target_apis(all_apis, normal_apis)
+    if explicit_target_apis:
+        target_apis = explicit_target_apis
+    if explicit_context_apis:
+        context_apis = explicit_context_apis
+    sequence_block = scenario.get("sequence_order_risk", {}) if isinstance(scenario.get("sequence_order_risk"), dict) else {}
+    expected_source = str(parameter_block.get("expected_parameter_source", "") or "").strip()
+    if sequence_block.get("normal_sequence_pattern"):
+        expected_source = expected_source or "normal_sequence_context"
+    risk_form = str(parameter_block.get("risky_parameter_form", "") or "")
+    if re.search(r"(前置|上下文|来源|继承|来自|绑定|跳过|缺失)", risk_form, re.I):
+        expected_source = expected_source or "upstream_context"
+    dependency_relation = str(parameter_block.get("parameter_dependency_relation", "") or "").strip() or "stable_within_target_api"
+    if context_apis:
+        dependency_relation = dependency_relation if dependency_relation != "unknown" else "derived_from_context_api"
+    if re.search(r"(绑定|所属|owner|project|issue|user|context|上下文|来源|来自)", risk_form, re.I):
+        dependency_relation = dependency_relation if dependency_relation != "unknown" else "bound_to_upstream_context"
+    normal_parameter_sequence = normalize_param_list(parameter_block.get("normal_parameter_sequence", [])) or normal_apis or all_apis
+    parameter_occurrences = normalize_record_list(parameter_block.get("parameter_occurrences", []))
+    if not parameter_occurrences:
+        parameter_occurrences = derive_parameter_occurrences(params, target_apis, context_apis)
+    context_binding = normalize_record_list(parameter_block.get("context_binding", []))
+    if not context_binding:
+        context_binding = derive_context_binding(params, target_apis, context_apis, dependency_relation)
+    return {
+        "target_api_scope": target_apis or all_apis,
+        "context_api_scope": context_apis,
+        "normal_parameter_sequence": normal_parameter_sequence,
+        "parameters": params,
+        "parameter_occurrences": parameter_occurrences,
+        "context_binding": context_binding,
+        "expected_source": expected_source or "same_api_context",
+        "dependency_relation": dependency_relation,
+        "risk_form": risk_form,
+    }
+
+
+def fol_list(values: list[str]) -> str:
+    return "{" + ",".join(fol_string(value) for value in values) + "}"
+
+
+def symbol_list(values: list[str], prefix: str) -> tuple[list[str], list[dict[str, str]]]:
+    symbols = []
+    bindings = []
+    seen = set()
+    for value in values:
+        text = str(value or "").strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        symbol = f"{prefix}{len(symbols) + 1}"
+        symbols.append(symbol)
+        bindings.append({"symbol": symbol, "value": text})
+    return symbols, bindings
+
+
+def symbolic_parameter_scope(p_scope: dict[str, Any]) -> tuple[dict[str, Any], dict[str, list[dict[str, str]]]]:
+    context_symbols, context_bindings = symbol_list(normalize_param_list(p_scope.get("context_api_scope", [])), "C")
+    target_symbols, target_bindings = symbol_list(normalize_param_list(p_scope.get("target_api_scope", [])), "T")
+    param_symbols, param_bindings = symbol_list(normalize_param_list(p_scope.get("parameters", [])), "P")
+    symbolic_scope = dict(p_scope)
+    symbolic_scope.update(
+        {
+            "context_api_scope_symbols": context_symbols,
+            "target_api_scope_symbols": target_symbols,
+            "parameter_symbols": param_symbols,
+        }
+    )
+    symbol_bindings = {
+        "context_api_scope": context_bindings,
+        "target_api_scope": target_bindings,
+        "parameters": param_bindings,
+    }
+    return symbolic_scope, symbol_bindings
+
+
+def fol_symbol_set(symbols: list[str]) -> str:
+    return "{" + ",".join(symbols) + "}"
+
+
 def formula_for(
     scenario: dict[str, Any],
     security_type: str,
     entities: list[dict[str, str]],
     bindings: dict[str, str],
     boundary_model: dict[str, Any],
+    context: list[dict[str, Any]],
 ) -> tuple[list[dict[str, str]], str, list[str]]:
     title = str(scenario.get("scenario_title", "安全场景"))
     title_const = fol_string(title)
@@ -615,13 +888,33 @@ def formula_for(
     category = fol_string(security_type)
     activity_model = build_activity_abstraction(scenario)
     parameter_block = scenario.get("parameter_consistency_risk", {}) if isinstance(scenario.get("parameter_consistency_risk"), dict) else {}
-    key_params = parameter_block.get("key_parameters_or_objects", [])
-    key_param_text = fol_string(",".join(str(item) for item in key_params) if isinstance(key_params, list) else str(key_params or ""))
-    has_parameter_risk = has_real_parameter_risk(parameter_block)
-    has_sequence_risk = bool(activity_model.get("activities"))
+    p_scope = parameter_scope(scenario, parameter_block, activity_model, context)
+    symbolic_p_scope, parameter_symbol_bindings = symbolic_parameter_scope(p_scope)
+    key_params = p_scope["parameters"]
+    key_param_text = fol_symbol_set(symbolic_p_scope["parameter_symbols"])
+    target_api_scope_text = fol_symbol_set(symbolic_p_scope["target_api_scope_symbols"])
+    context_api_scope_text = fol_symbol_set(symbolic_p_scope["context_api_scope_symbols"])
+    expected_source_text = fol_string(p_scope["expected_source"])
+    dependency_relation_text = fol_string(p_scope["dependency_relation"])
+    risk_type = scenario_risk_type(scenario)
+    has_parameter_risk = (
+        risk_type in {"parameter_consistency", "both"}
+        and has_parameter_risk_block(scenario)
+        and has_real_parameter_risk(parameter_block)
+        and has_actionable_parameter_scope(p_scope)
+    )
+    has_sequence_risk = (
+        risk_type in {"sequence_order", "both"}
+        and has_sequence_risk_block(scenario)
+        and bool(activity_model.get("activities"))
+    )
 
     sequence_clause = sequence_formula_clause(activity_model)
-    parameter_clause = f'ViolatesParameterConsistency(s,{key_param_text},{category})'
+    parameter_clause = (
+        f'ParameterFlowContext(s,{context_api_scope_text},{target_api_scope_text},{key_param_text},{dependency_relation_text}) ∧ '
+        f'ParameterAppearsOrDerived(s,{target_api_scope_text},{key_param_text}) ∧ '
+        f'¬ParameterConsistentWithContext(s,{context_api_scope_text},{target_api_scope_text},{key_param_text},{expected_source_text})'
+    )
     expressions = []
     combine = has_sequence_risk and has_parameter_risk and should_combine_sequence_and_parameter(scenario)
     if combine:
@@ -630,8 +923,9 @@ def formula_for(
                 "dimension": "sequence_order_and_parameter_consistency",
                 "scope": {
                     "sequence": sequence_expression_scope(activity_model),
-                    "parameters": key_params if isinstance(key_params, list) else [str(key_params)],
+                    "parameter": symbolic_p_scope,
                 },
+                "symbol_bindings": {"parameter": parameter_symbol_bindings},
                 "formula": f'∀s (({sequence_clause} ∧ {parameter_clause}) → RatedCombinedSequenceParameterRisk(s,{category},{risk_level},{title_const}))',
                 "meaning": "当顺序链被破坏，并且关键对象参数也存在来源不明、中途替换或上下文不一致时，产生组合风险评级。",
             }
@@ -649,12 +943,10 @@ def formula_for(
         expressions.append(
             {
                 "dimension": "parameter_consistency",
-                "scope": {
-                    "parameters": key_params if isinstance(key_params, list) else [str(key_params)],
-                    "risk_form": parameter_block.get("risky_parameter_form", ""),
-                },
+                "scope": symbolic_p_scope,
+                "symbol_bindings": {"parameter": parameter_symbol_bindings},
                 "formula": f'∀s ({parameter_clause} → RatedParameterRisk(s,{category},{risk_level},{title_const}))',
-                "meaning": "如果会话中的关键对象参数存在中途替换、来源不明或组合不一致，则产生参数一致性风险评级。",
+                "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，则产生参数一致性风险评级。",
             }
         )
     predicates = [
@@ -663,12 +955,14 @@ def formula_for(
         "RequiredBefore(A_required,A_target)",
         "RiskyAdjacentOrder(s,A_before,A_after)",
         "CountInSession(s,A)",
-        "ViolatesParameterConsistency(s,key_parameters,security_category)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
         "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
         "RatedParameterRisk(s,security_category,risk_level,title)",
         "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)",
     ]
-    plain = "表达式会按场景选择生成方式：如果参数风险依赖前置上下文或顺序链，则合并成一个组合表达式；如果两类风险相对独立，则拆成顺序表达式和参数表达式。"
+    plain = "表达式会按场景选择生成方式：参数一致性公式只保留参数来源上下文 API、目标 API、关键参数和依赖关系；完整业务序列只作为 scope 参考，不进入公式主体。"
     return expressions, plain, predicates
 
 
@@ -677,7 +971,9 @@ def evidence_mapping(security_type: str, scenario: dict[str, Any], context: list
         {"predicate": "InSession(s,r)", "source": "原始 session 序列", "field_hint": "session_id 与步骤号"},
         {"predicate": "Calls(r,api)", "source": "原始请求日志", "field_hint": "HTTP method + path"},
         {"predicate": "ViolatesSequenceOrder", "source": "聚类代表序列 + 成员序列", "field_hint": "前置步骤、后置接口、敏感动作顺序、重复调用"},
-        {"predicate": "ViolatesParameterConsistency", "source": "OpenAPI 参数文档 + 原始请求参数", "field_hint": "issueId/projectId/userId/avatarId 等关键对象参数是否中途替换或来源不明"},
+        {"predicate": "ParameterFlowContext", "source": "正常序列 + OpenAPI 参数文档", "field_hint": "参数来源上下文 API、目标 API、关键参数"},
+        {"predicate": "ParameterAppearsOrDerived", "source": "原始请求参数 + OpenAPI 参数/响应文档", "field_hint": "参数在哪个 API 中出现，或只能从响应/业务上下文推断"},
+        {"predicate": "ParameterConsistentWithContext", "source": "原始请求参数 + 上下文 API", "field_hint": "目标 API 参数是否与上游上下文一致"},
         {"predicate": "RatedSequenceRisk", "source": "LLM 风险评级结果", "field_hint": "security_type、risk_type、risk_level、risk_score"},
     ]
 
@@ -717,10 +1013,15 @@ def compact_openapi_context(context: list[dict[str, Any]]) -> list[dict[str, Any
     return output
 
 
-def compact_scenario_summary(scenario: dict[str, Any], security_type: str) -> dict[str, Any]:
+def compact_scenario_summary(
+    scenario: dict[str, Any],
+    security_type: str,
+    context: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     sequence_block = scenario.get("sequence_order_risk", {}) if isinstance(scenario.get("sequence_order_risk"), dict) else {}
     parameter_block = scenario.get("parameter_consistency_risk", {}) if isinstance(scenario.get("parameter_consistency_risk"), dict) else {}
-    return {
+    context = context or []
+    output = {
         "security_type": security_type,
         "risk_level": scenario.get("risk_level", ""),
         "risk_score": scenario.get("risk_score", ""),
@@ -731,10 +1032,24 @@ def compact_scenario_summary(scenario: dict[str, Any], security_type: str) -> di
             sequence_block.get("risky_sequence_pattern", []),
         ),
         "violated_order_constraint": sequence_block.get("violated_order_constraint", ""),
-        "parameter_objects": parameter_block.get("key_parameters_or_objects", []),
-        "parameter_risk": parameter_block.get("risky_parameter_form", ""),
         "overall_reason": scenario.get("overall_reason", ""),
     }
+    if has_real_parameter_risk(parameter_block):
+        p_scope = parameter_scope(scenario, parameter_block, build_activity_abstraction(scenario), context)
+        output.update(
+            {
+                "parameter_target_apis": p_scope.get("target_api_scope", []),
+                "parameter_context_apis": p_scope.get("context_api_scope", []),
+                "parameter_normal_sequence": p_scope.get("normal_parameter_sequence", []),
+                "parameter_objects": p_scope.get("parameters", []),
+                "parameter_occurrences": p_scope.get("parameter_occurrences", []),
+                "parameter_context_binding": p_scope.get("context_binding", []),
+                "parameter_dependency_relation": p_scope.get("dependency_relation", ""),
+                "expected_parameter_source": p_scope.get("expected_source", ""),
+                "parameter_risk": p_scope.get("risk_form", ""),
+            }
+        )
+    return output
 
 
 def generate_expression(
@@ -789,12 +1104,12 @@ def generate_expression(
             "openapi_summary": compact_openapi_context(context),
         }
 
-    logic_expressions, plain, predicates = formula_for(scenario, security_type, entities, bindings, boundary_model)
+    logic_expressions, plain, predicates = formula_for(scenario, security_type, entities, bindings, boundary_model, context)
     return {
         "fol_id": f"FOL-{scenario_id}",
         "status": "generated",
         "source": source,
-        "scenario_summary": compact_scenario_summary(scenario, security_type),
+        "scenario_summary": compact_scenario_summary(scenario, security_type, context),
         "predicates": predicates,
         "activity_abstraction": activity_model,
         "openapi_summary": compact_openapi_context(context),
@@ -823,7 +1138,9 @@ def predicate_library() -> list[dict[str, str]]:
         {"predicate": "RequiredBefore(A_required,A_target)", "description": "正常业务中 A_required 通常应出现在 A_target 之前"},
         {"predicate": "RiskyAdjacentOrder(s,A_before,A_after)", "description": "会话 s 中出现可疑的相邻活动顺序"},
         {"predicate": "CountInSession(s,A)", "description": "活动 A 在会话 s 中出现的次数"},
-        {"predicate": "ViolatesParameterConsistency(s,key_parameters,security_category)", "description": "关键对象参数存在中途替换、来源不明或组合不一致"},
+        {"predicate": "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)", "description": "参数一致性检查的上下文 API、目标 API、关键参数和依赖关系"},
+        {"predicate": "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)", "description": "关键参数出现在目标 API 中，或者需要从响应、搜索条件、OpenAPI 文档中推断"},
+        {"predicate": "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)", "description": "目标 API 参数与上游上下文、同一对象或同一会话来源保持一致"},
         {"predicate": "RatedSequenceOrderRisk(s,security_category,risk_level,title)", "description": "序列顺序风险评级结果"},
         {"predicate": "RatedParameterRisk(s,security_category,risk_level,title)", "description": "参数一致性风险评级结果"},
         {"predicate": "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)", "description": "序列顺序和参数一致性共同成立时的组合风险评级结果"},
@@ -834,6 +1151,31 @@ def format_list(items: Any) -> str:
     if not isinstance(items, list) or not items:
         return "无"
     return " -> ".join(str(item) for item in items)
+
+
+def format_record_list(items: Any) -> str:
+    if not isinstance(items, list) or not items:
+        return "无"
+    parts = []
+    for item in items[:8]:
+        if not isinstance(item, dict):
+            parts.append(str(item))
+            continue
+        if {"parameter", "api"} <= set(item):
+            parts.append(
+                f"{item.get('parameter')} @ {item.get('api')} "
+                f"[{item.get('location', 'unknown')}, {item.get('role', 'unknown')}]"
+            )
+        elif {"source_api", "target_api"} <= set(item):
+            parts.append(
+                f"{item.get('source_api')} -> {item.get('target_api')} "
+                f"({item.get('parameter', '')}, {item.get('relation', 'unknown')})"
+            )
+        else:
+            parts.append(", ".join(f"{key}={value}" for key, value in item.items()))
+    if len(items) > 8:
+        parts.append(f"... 共 {len(items)} 条")
+    return "；".join(parts)
 
 
 def activity_map_text(expression: dict[str, Any]) -> list[str]:
@@ -858,7 +1200,7 @@ def build_logic_markdown(site_id: str, expressions: list[dict[str, Any]]) -> str
         "",
         "- 顺序跳步/越序模板：`RequiredBefore(A_required,A_target) ∧ ¬Before(s,A_required,A_target)`",
         "- 重复调用模板：`CountInSession(s,A) ≥ n`",
-        "- 参数一致性模板：`ViolatesParameterConsistency(s,key_parameters,security_category)`",
+        "- 参数一致性模板：`ParameterFlowContext(...) ∧ ParameterAppearsOrDerived(...) ∧ ¬ParameterConsistentWithContext(...)`",
         "- 组合风险模板：`SequenceRisk(s) ∧ ParameterRisk(s)`",
         "",
     ]
@@ -877,11 +1219,22 @@ def build_logic_markdown(site_id: str, expressions: list[dict[str, Any]]) -> str
                 f"- 攻击场景概述: {summary.get('overall_reason', '')}",
                 f"- 正常链路: {format_list(summary.get('normal_sequence'))}",
                 f"- 可能违规链路: {format_list(summary.get('possible_violation_sequence'))}",
-                f"- 参数风险: {summary.get('parameter_risk') or '无'}",
-                "",
-                "活动映射:",
             ]
         )
+        if "parameter_risk" in summary:
+            lines.extend(
+                [
+                    f"- 参数目标 API: {format_list(summary.get('parameter_target_apis'))}",
+                    f"- 参数上下文 API: {format_list(summary.get('parameter_context_apis'))}",
+                    f"- 参数完整链路: {format_list(summary.get('parameter_normal_sequence'))}",
+                    f"- 参数出现位置: {format_record_list(summary.get('parameter_occurrences'))}",
+                    f"- 参数上下文绑定: {format_record_list(summary.get('parameter_context_binding'))}",
+                    f"- 参数依赖关系: {summary.get('parameter_dependency_relation') or '无'}",
+                    f"- 参数期望来源: {summary.get('expected_parameter_source') or '无'}",
+                    f"- 参数风险: {summary.get('parameter_risk') or '无'}",
+                ]
+            )
+        lines.extend(["", "活动映射:"])
         activity_lines = activity_map_text(item)
         lines.extend(activity_lines or ["- 无"])
         lines.extend(["", "一阶逻辑表达式:"])
