@@ -1,0 +1,536 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-33-2",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 106,
+      "false_positive_hit_count": 106,
+      "false_positive_rate": 0.04365733113673806
+    },
+    "rule": {
+      "fol_id": "FOL-33-2",
+      "scenario_title": "跳过用户列表页面直接执行关注操作的顺序风险",
+      "security_type": "RESOURCE_CONSUMPTION",
+      "risk_level": "low",
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /user/people"
+          },
+          {
+            "symbol": "A2",
+            "label": "POST /user/profile/follow"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A2"
+        ],
+        "possible_violation_chain": [
+          "A2"
+        ],
+        "missing_or_reordered_activity": "A1",
+        "missing_or_reordered_label": "缺失 GET /user/people 步骤。",
+        "violated_order_constraint": "通常应先浏览/搜索用户，再执行关注。",
+        "sequence_subtype": "business_order",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 300,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A2",
+        "related_apis": [
+          "GET /user/people",
+          "POST /user/profile/follow"
+        ]
+      },
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "missing_or_reordered_step",
+            "required_activity": "A1",
+            "required_activity_label": "GET /user/people",
+            "target_activity": "A2",
+            "target_activity_label": "POST /user/profile/follow",
+            "status_code_constraints": {
+              "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "missing_or_reordered_step",
+            "required_activity": "A1",
+            "target_activity": "A2",
+            "activity": "",
+            "threshold": 2,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+            }
+          },
+          "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_22",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "required_before_missing",
+              "required_api": "GET /user/people",
+              "target_api": "POST /user/profile/follow",
+              "target_step": 12,
+              "target_request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+              "key_context_steps": [],
+              "key_target_steps": [
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "missing_context": {
+                "required_api": "GET /user/people",
+                "expected_before_target_step": 12,
+                "observed_required_steps": []
+              },
+              "status_evidence": {
+                "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 12,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /space/space/follow",
+          "POST /user/profile/follow",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629",
+          "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /space/space/follow?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=7",
+          "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=11"
+        ]
+      },
+      {
+        "session_id": "combined_24",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "required_before_missing",
+              "required_api": "GET /user/people",
+              "target_api": "POST /user/profile/follow",
+              "target_step": 4,
+              "target_request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "key_context_steps": [],
+              "key_target_steps": [
+                {
+                  "step": 4,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "missing_context": {
+                "required_api": "GET /user/people",
+                "expected_before_target_step": 4,
+                "observed_required_steps": []
+              },
+              "status_evidence": {
+                "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 4,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/account/edit",
+          "POST /user/profile/follow",
+          "GET /notification/list",
+          "GET /user/profile/about",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "GET /user/account/edit-settings",
+          "POST /space/space/follow",
+          "GET /space/browse/search-json",
+          "GET /user/profile",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /user/account/edit",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "GET /notification/list?from=0",
+          "GET /user/profile/about?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=31",
+          "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "GET /user/account/edit-settings",
+          "POST /space/space/follow?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "GET /user/profile?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=13"
+        ]
+      },
+      {
+        "session_id": "combined_25",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "required_before_missing",
+              "required_api": "GET /user/people",
+              "target_api": "POST /user/profile/follow",
+              "target_step": 11,
+              "target_request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "key_context_steps": [],
+              "key_target_steps": [
+                {
+                  "step": 11,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "missing_context": {
+                "required_api": "GET /user/people",
+                "expected_before_target_step": 11,
+                "observed_required_steps": []
+              },
+              "status_evidence": {
+                "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 11,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "POST /space/space/follow",
+          "GET /space/space",
+          "GET /space/manage",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /user/profile/follow",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /user/account/edit",
+          "POST /space/space/follow?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=19",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=13"
+        ]
+      },
+      {
+        "session_id": "combined_26",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "required_before_missing",
+              "required_api": "GET /user/people",
+              "target_api": "POST /user/profile/follow",
+              "target_step": 14,
+              "target_request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "key_context_steps": [],
+              "key_target_steps": [
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "missing_context": {
+                "required_api": "GET /user/people",
+                "expected_before_target_step": 14,
+                "observed_required_steps": []
+              },
+              "status_evidence": {
+                "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 14,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "POST /space/space/follow",
+          "POST /like/like/like",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile",
+          "GET /space/space/about",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /user/profile/follow",
+          "POST /post/post/post",
+          "POST /comment/comment/show",
+          "POST /like/like/unlike"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /user/account/edit",
+          "POST /space/space/follow?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=19",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /post/post/post?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=11",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=22"
+        ]
+      },
+      {
+        "session_id": "combined_28",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (Occurs(s,A2) ∧ RequiredBefore(A1,A2) ∧ ¬Before(s,A1,A2) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"low\",\"跳过用户列表页面直接执行关注操作的顺序风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "required_before_missing",
+              "required_api": "GET /user/people",
+              "target_api": "POST /user/profile/follow",
+              "target_step": 13,
+              "target_request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "key_context_steps": [],
+              "key_target_steps": [
+                {
+                  "step": 13,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "missing_context": {
+                "required_api": "GET /user/people",
+                "expected_before_target_step": 13,
+                "observed_required_steps": []
+              },
+              "status_evidence": {
+                "status_code_analysis": "状态码分析\n状态码缺失，无法判断请求结果。\n跳过列表页并不一定代表攻击（可能通过其他渠道如链接进入），因此风险等级为 low。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 13,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/account/edit",
+          "GET /user/profile/about",
+          "POST /space/space/follow",
+          "GET /notification/list",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/browse/search-json",
+          "POST /comment/comment/show",
+          "POST /post/post/edit",
+          "GET /user/profile",
+          "POST /user/profile/follow",
+          "POST /space/membership/invite",
+          "POST /like/like/unlike",
+          "GET /user/account/change-email",
+          "POST /user/profile/unfollow",
+          "GET /space/space/about"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /user/account/edit",
+          "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+          "POST /space/space/follow?cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /notification/list?from=0",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=13",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost",
+          "POST /post/post/edit?id=24 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}",
+          "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /space/membership/invite?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c BODY {\"_csrf\":\"wigEIpZi2AN4b9AxkNo_87iBtv2PiSbn45CYQMNpzTz6QEhI5xW5TxYgmEn0l0qyi_jZsczRaLPRqO0ppyCPcA==\",\"InviteForm[invite]\":null,\"InviteForm[invite][]\":\"9ffc5154-a1d1-4c99-af07-fb9b825e9a85\"}",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=22",
+          "GET /user/account/change-email",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+        ]
+      }
+    ]
+  }
+}

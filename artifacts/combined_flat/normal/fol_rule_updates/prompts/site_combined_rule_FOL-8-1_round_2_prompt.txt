@@ -1,0 +1,1743 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [
+    {
+      "candidate": {
+        "fol_id": "FOL-8-1",
+        "action": "replace_expression",
+        "expression_index": 1,
+        "modified_scope": {
+          "context_api_scope": [
+            "GET /space/space",
+            "GET /space/space/about",
+            "GET /space/manage",
+            "GET /space/manage/member"
+          ]
+        },
+        "modified_expression": null,
+        "rationale": "扩大上下文 API 范围。将 'GET /space/manage' 等管理类接口纳入上下文来源。在后台管理场景（如 combined_4, combined_6）中，用户常通过管理接口进入，而非 'GET /space/space'。扩充上下文定义可解决大量 'parameter_context_missing' 类型的误报，使规则适应更多样的业务入口。",
+        "false_positive_reason": "规则 FOL-8-1 存在两个主要误报原因：1. 检测参数配置错误：规则旨在检测“容器ID”越权，但 detector 配置中 parameters 为 [\"cguid\"]，导致检测器检查的是 URL 查询参数 cguid，而非请求体中实际生效的 containerGuid。在 normal_hit_sessions（如 combined_3）中，URL 参数 cguid 与上下文不符被误报，而请求体中的 containerGuid 才是真实业务数据，两者常不一致。2. 上下文强依赖与业务行为冲突：规则强制依赖 GET /space/space 作为上下文，但在后台管理（combined_4, combined_6）或跨空间浏览场景（combined_7, combined_9）中，用户常直接操作或切换空间，不一定先调用 GET /space/space，或调用的空间与当前操作目标不同，导致正常的跨空间操作被判定为“上下文缺失”或“参数不一致”。"
+      },
+      "accepted": true,
+      "before_rule_score": [
+        826,
+        1109
+      ],
+      "after_rule_score": [
+        814,
+        1095
+      ],
+      "before_full_score": [
+        1610,
+        5752
+      ],
+      "after_full_score": [
+        1610,
+        5738
+      ]
+    }
+  ],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-8-1",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 814,
+      "false_positive_hit_count": 1095,
+      "false_positive_rate": 0.33525535420098845
+    },
+    "rule": {
+      "fol_id": "FOL-8-1",
+      "scenario_title": "发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险",
+      "security_type": "BOLA",
+      "risk_level": "high",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [
+              "GET /space/space",
+              "GET /space/space/about",
+              "GET /space/manage",
+              "GET /space/manage/member"
+            ],
+            "normal_parameter_sequence": [
+              "GET /space/space?cguid=xxx",
+              "POST /post/post/post (body.containerGuid=xxx)",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "containerGuid",
+                "api": "POST /post/post/post",
+                "location": "body",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "bound_to_upstream_context",
+                "explanation": "cguid 应由上游上下文约束目标 API，避免中途替换或脱离上下文。"
+              }
+            ],
+            "dropped_unverified_parameters": [
+              "GUID",
+              "containerGuid"
+            ],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "guid_mapping",
+                "source_parameter": "cguid",
+                "target_parameter": "containerGuid",
+                "relation": "归属依赖",
+                "explanation": "发布帖子应发生在用户当前访问的社区上下文中，containerGuid 应与上游访问的 cguid 一致，否则涉嫌跨社区越权发布。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "containerGuid 值与上游 cguid 不一致或来源不明",
+            "context_api_scope_symbols": [
+              "C1"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [
+              "GET /space/space",
+              "GET /space/space/about",
+              "GET /space/manage",
+              "GET /space/manage/member"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /space/space"
+                },
+                {
+                  "symbol": "C2",
+                  "value": "GET /space/space/about"
+                },
+                {
+                  "symbol": "C3",
+                  "value": "GET /space/manage"
+                },
+                {
+                  "symbol": "C4",
+                  "value": "GET /space/manage/member"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /post/post/post"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_3",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+              ],
+              "context_values": [
+                "45446c8f-2181-412f-ba18-20aa01e356fc",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "target_apis": [
+                "POST /post/post/post"
+              ],
+              "context_apis": [
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                16
+              ],
+              "context_steps": [
+                11,
+                12,
+                14
+              ],
+              "target_examples": [
+                {
+                  "step": 16,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/manage",
+                  "request": "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage/member",
+                  "request": "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 16,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b92568e9-c3d5-4d87-b045-c39b1aa18901",
+                  "request": "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "request": "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+                ],
+                "context_values": [
+                  "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                ],
+                "unexpected_target_values": [
+                  "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 16,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "b92568e9-c3d5-4d87-b045-c39b1aa18901",
+                    "request": "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  },
+                  {
+                    "step": 12,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                    "request": "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                  },
+                  {
+                    "step": 14,
+                    "api": "GET /space/manage/member",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 16,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 11,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            },
+            {
+              "step": 12,
+              "api": "GET /space/manage",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+              "request": "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+            },
+            {
+              "step": 14,
+              "api": "GET /space/manage/member",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 16,
+              "api": "POST /post/post/post",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "b92568e9-c3d5-4d87-b045-c39b1aa18901",
+              "request": "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+              ],
+              "context_values": [
+                "45446c8f-2181-412f-ba18-20aa01e356fc",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "unexpected_target_values": [
+                "b92568e9-c3d5-4d87-b045-c39b1aa18901"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 16,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b92568e9-c3d5-4d87-b045-c39b1aa18901",
+                  "request": "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "request": "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /activity/admin/defaults",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /activity/admin/defaults",
+          "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=20",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email"
+        ]
+      },
+      {
+        "session_id": "combined_4",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+              ],
+              "target_apis": [
+                "POST /post/post/post"
+              ],
+              "context_apis": [
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                11
+              ],
+              "context_steps": [
+                5,
+                16
+              ],
+              "target_examples": [
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage",
+                  "request": "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "request": "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "context_values": [
+                  "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                ],
+                "unexpected_target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                    "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                    "request": "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                  },
+                  {
+                    "step": 16,
+                    "api": "GET /space/manage/member",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                    "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 11,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 5,
+              "api": "GET /space/manage",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+              "request": "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+            },
+            {
+              "step": 16,
+              "api": "GET /space/manage/member",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+              "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 11,
+              "api": "POST /post/post/post",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+              "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+              ],
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "request": "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /user/people",
+          "GET /user/profile/about",
+          "GET /space/manage",
+          "GET /marketplace/purchase",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /user/account/edit",
+          "GET /notification/list",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /marketplace/update",
+          "GET /admin/information/background-jobs",
+          "GET /activity/admin/defaults",
+          "GET /space/manage/member",
+          "GET /space/manage/member/change-owner",
+          "GET /topic/manage",
+          "GET /user/profile",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /user/people",
+          "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+          "GET /marketplace/purchase",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /user/account/edit",
+          "GET /notification/list?from=0",
+          "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=31",
+          "GET /marketplace/update",
+          "GET /admin/information/background-jobs",
+          "GET /activity/admin/defaults",
+          "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+          "GET /space/manage/member/change-owner?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "GET /topic/manage?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "GET /user/profile?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=13"
+        ]
+      },
+      {
+        "session_id": "combined_6",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "2a61088c-1182-463d-90cb-2cdea7b7385c"
+              ],
+              "context_values": [
+                "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+              ],
+              "target_apis": [
+                "POST /post/post/post"
+              ],
+              "context_apis": [
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                19
+              ],
+              "context_steps": [
+                6,
+                8
+              ],
+              "target_examples": [
+                {
+                  "step": 19,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "2a61088c-1182-463d-90cb-2cdea7b7385c"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "request": "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/member",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 19,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "2a61088c-1182-463d-90cb-2cdea7b7385c",
+                  "request": "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "2a61088c-1182-463d-90cb-2cdea7b7385c"
+                ],
+                "context_values": [
+                  "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                ],
+                "unexpected_target_values": [
+                  "2a61088c-1182-463d-90cb-2cdea7b7385c"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 19,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "2a61088c-1182-463d-90cb-2cdea7b7385c",
+                    "request": "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                    "request": "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                  },
+                  {
+                    "step": 8,
+                    "api": "GET /space/manage/member",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                    "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 19,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 6,
+              "api": "GET /space/manage",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+              "request": "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+            },
+            {
+              "step": 8,
+              "api": "GET /space/manage/member",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+              "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 19,
+              "api": "POST /post/post/post",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "2a61088c-1182-463d-90cb-2cdea7b7385c",
+              "request": "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "2a61088c-1182-463d-90cb-2cdea7b7385c"
+              ],
+              "context_values": [
+                "fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+              ],
+              "unexpected_target_values": [
+                "2a61088c-1182-463d-90cb-2cdea7b7385c"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 19,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "2a61088c-1182-463d-90cb-2cdea7b7385c",
+                  "request": "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+                  "request": "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /space/manage/module",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/member/change-owner",
+          "GET /space/manage/default/advanced",
+          "GET /space/manage/security/permissions",
+          "GET /space/manage/member/index",
+          "POST /post/post/post",
+          "POST /post/post/edit"
+        ],
+        "raw_sequence": [
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+          "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+          "GET /space/manage/module?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/member/change-owner?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /space/manage/default/advanced?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/manage/security/permissions?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /space/manage/member/index?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=24&cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}"
+        ]
+      },
+      {
+        "session_id": "combined_7",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+              ],
+              "target_apis": [
+                "POST /post/post/post"
+              ],
+              "context_apis": [
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                20
+              ],
+              "context_steps": [
+                11,
+                12
+              ],
+              "target_examples": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "context_values": [
+                  "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                ],
+                "unexpected_target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 20,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                    "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                    "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                  },
+                  {
+                    "step": 12,
+                    "api": "GET /space/space/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 20,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 11,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+              "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+            },
+            {
+              "step": 12,
+              "api": "GET /space/space/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 20,
+              "api": "POST /post/post/post",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+              "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+              ],
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /user/profile/about",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /space/space/follow",
+          "POST /user/profile/follow",
+          "POST /like/like/like",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs?_pjax=%23layout-content&_=1737029581146",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /space/space/follow?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=10",
+          "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+        ]
+      },
+      {
+        "session_id": "combined_9",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"发布帖子时容器ID脱离社区访问上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "target_apis": [
+                "POST /post/post/post"
+              ],
+              "context_apis": [
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                20
+              ],
+              "context_steps": [
+                12,
+                13,
+                14,
+                16
+              ],
+              "target_examples": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 12,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /space/space/about",
+                  "request": "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage",
+                  "request": "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "request": "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 12,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                  "request": "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "request": "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "context_values": [
+                  "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                  "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                ],
+                "unexpected_target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 20,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                    "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 12,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  },
+                  {
+                    "step": 13,
+                    "api": "GET /space/space/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  },
+                  {
+                    "step": 14,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                    "request": "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c"
+                  },
+                  {
+                    "step": 16,
+                    "api": "GET /space/manage/member",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                    "request": "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 20,
+                    "api": "POST /post/post/post",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求体中的 containerGuid 未出现在上游 GET /space/space 的 cguid 参数中，且请求返回 2xx。\n状态码分析\n247\n日志中状态码均为0，无法确认服务端是否成功处理，假设返回2xx则风险成立。\n若 POST /post/post/post 返回 2xx，且 containerGuid 与上下文不符，则证实越权成功。\n由于缺乏真实状态码，风险等级基于攻击可行性和业务影响评估为 high；若有403状态码则风险降低。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 12,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            },
+            {
+              "step": 13,
+              "api": "GET /space/space/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            },
+            {
+              "step": 14,
+              "api": "GET /space/manage",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+              "request": "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c"
+            },
+            {
+              "step": 16,
+              "api": "GET /space/manage/member",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+              "request": "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 20,
+              "api": "POST /post/post/post",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+              "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 20,
+                  "api": "POST /post/post/post",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 12,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+                  "request": "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /space/manage/member",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+                  "request": "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/people",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /activity/admin/defaults",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /space/manage/module",
+          "GET /user/profile/about",
+          "GET /user/profile",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /user/people",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /activity/admin/defaults",
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/manage?cguid=15aa9ed4-269c-4a63-ac65-a8aca9d2c55c",
+          "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "GET /space/manage/member?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+          "GET /space/manage/module?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /user/profile/about?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047",
+          "GET /user/profile?cguid=e661b05e-7cc5-4468-88e0-96689333f7bf",
+          "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}"
+        ]
+      }
+    ]
+  }
+}

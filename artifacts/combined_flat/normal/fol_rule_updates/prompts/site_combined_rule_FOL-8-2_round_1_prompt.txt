@@ -1,0 +1,1779 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-8-2",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 250,
+      "false_positive_hit_count": 250,
+      "false_positive_rate": 0.10296540362438221
+    },
+    "rule": {
+      "fol_id": "FOL-8-2",
+      "scenario_title": "点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险",
+      "security_type": "BOLA",
+      "risk_level": "medium",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /like/like/like"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "POST /post/post/post (创建帖子)",
+              "POST /like/like/like (点赞刚创建的帖子)",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameters": [
+              "contentId"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "contentId",
+                "api": "POST /like/like/like",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "POST /post/post/post",
+                "target_api": "POST /like/like/like",
+                "parameter": "contentId",
+                "source_parameter": "response_body.id",
+                "target_parameter": "contentId",
+                "relation": "派生依赖",
+                "explanation": "正常流程中，点赞对象往往是刚发布的帖子或刚浏览的帖子；若攻击者枚举 contentId，则破坏了此上下文绑定。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "contentId 来源不明或与上游上下文不符",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /like/like/like"
+              ],
+              "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "contentId"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /like/like/like"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /like/like/like"
+              ],
+              "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /like/like/like"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "contentId"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_181",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "contentId",
+              "distinct_value_count": 3,
+              "values": [
+                "135",
+                "136",
+                "137"
+              ],
+              "steps": [
+                5,
+                11,
+                13
+              ],
+              "examples": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "135"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "136"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "137"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "135",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "136",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "137",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "135",
+                  "to_value": "136",
+                  "from_step": 5,
+                  "to_step": 11,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "136",
+                  "to_value": "137",
+                  "from_step": 11,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "contentId",
+                "target_values": [
+                  "135",
+                  "136",
+                  "137"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "135",
+                  "136",
+                  "137"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "135",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135"
+                  },
+                  {
+                    "step": 11,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "136",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136"
+                  },
+                  {
+                    "step": 13,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "137",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "contentId",
+                    "from_value": "135",
+                    "to_value": "136",
+                    "from_step": 5,
+                    "to_step": 11,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "contentId",
+                    "from_value": "136",
+                    "to_value": "137",
+                    "from_step": 11,
+                    "to_step": 13,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /like/like/like"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 5,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "135",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135"
+            },
+            {
+              "step": 11,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "136",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136"
+            },
+            {
+              "step": 13,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "137",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "contentId",
+              "from_value": "135",
+              "to_value": "136",
+              "from_step": 5,
+              "to_step": 11,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "contentId",
+              "from_value": "136",
+              "to_value": "137",
+              "from_step": 11,
+              "to_step": 13,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "contentId",
+              "target_values": [
+                "135",
+                "136",
+                "137"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "135",
+                "136",
+                "137"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "135",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "136",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "137",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "135",
+                  "to_value": "136",
+                  "from_step": 5,
+                  "to_step": 11,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "136",
+                  "to_value": "137",
+                  "from_step": 11,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792701",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792702",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"E6Qi1one9uBAQeLeXUrJJhXLjDrVj3IGxWF2jgdh9-d68A-SvayvsRYti-0yOq5LZKT4e5PIRmKmNBWjdCKu0g==\",\"message\":\"爱人访问广泛热\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"E6Qi1one9uBAQeLeXUrJJhXLjDrVj3IGxWF2jgdh9-d68A-SvayvsRYti-0yOq5LZKT4e5PIRmKmNBWjdCKu0g==\",\"message\":\"二五官方认定\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=135",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792703",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792704",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792705",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"U8luA8KRVDRz2xCIHHtq_OsnS47IJJTJhbHEF1oNXOA6nUNH9uMNZSW3ebtzCw2Rmkg_z45joK3m5Kc6KU4F1Q==\",\"message\":\"大润发给v\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=136",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"U8luA8KRVDRz2xCIHHtq_OsnS47IJJTJhbHEF1oNXOA6nUNH9uMNZSW3ebtzCw2Rmkg_z45joK3m5Kc6KU4F1Q==\",\"message\":\"人读过他人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+        ]
+      },
+      {
+        "session_id": "combined_182",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "contentId",
+              "distinct_value_count": 3,
+              "values": [
+                "139",
+                "140",
+                "141"
+              ],
+              "steps": [
+                5,
+                12,
+                13
+              ],
+              "examples": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "139"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "141"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "140"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "139",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "141",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "140",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "139",
+                  "to_value": "141",
+                  "from_step": 5,
+                  "to_step": 12,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "141",
+                  "to_value": "140",
+                  "from_step": 12,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "contentId",
+                "target_values": [
+                  "139",
+                  "140",
+                  "141"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "139",
+                  "140",
+                  "141"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "139",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139"
+                  },
+                  {
+                    "step": 12,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "141",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141"
+                  },
+                  {
+                    "step": 13,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "140",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "contentId",
+                    "from_value": "139",
+                    "to_value": "141",
+                    "from_step": 5,
+                    "to_step": 12,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "contentId",
+                    "from_value": "141",
+                    "to_value": "140",
+                    "from_step": 12,
+                    "to_step": 13,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /like/like/like"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 5,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "139",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139"
+            },
+            {
+              "step": 12,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "141",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141"
+            },
+            {
+              "step": 13,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "140",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "contentId",
+              "from_value": "139",
+              "to_value": "141",
+              "from_step": 5,
+              "to_step": 12,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "contentId",
+              "from_value": "141",
+              "to_value": "140",
+              "from_step": 12,
+              "to_step": 13,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "contentId",
+              "target_values": [
+                "139",
+                "140",
+                "141"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "139",
+                "140",
+                "141"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "139",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "141",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "140",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "139",
+                  "to_value": "141",
+                  "from_step": 5,
+                  "to_step": 12,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "141",
+                  "to_value": "140",
+                  "from_step": 12,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "POST /post/post/edit"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792707",
+          "GET /space/space?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce&_pjax=%23layout-content&_=1744248792708",
+          "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139",
+          "GET /space/space/about?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce&_pjax=%23layout-content&_=1744248792709",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792710",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792711",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=142&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"fzBV2vyFHjlS6t3RB-03VZN8_0LkQtPGGd4b_AqllBYWZHieyPdHaASGtOJonVA44hOLA6IF56J6i3jReebNIw==\",\"Post[message]\":\"的我分为分为\"}",
+          "POST /post/post/edit?id=142&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"D55LVwDMKPke4-4lfkpXbydEgsQvHFSzLlxcIjySJ9pmymYTNL5xqEiPhxYROjACViv2hWlbYNdNCT8PT9F-7w==\",\"Post[message]\":\"违反而无法 的我分为分为\"}"
+        ]
+      },
+      {
+        "session_id": "combined_183",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "contentId",
+              "distinct_value_count": 3,
+              "values": [
+                "137",
+                "143",
+                "146"
+              ],
+              "steps": [
+                4,
+                13,
+                15
+              ],
+              "examples": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "143"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "146"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "137"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "143",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "146",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "137",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "143",
+                  "to_value": "146",
+                  "from_step": 4,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "146",
+                  "to_value": "137",
+                  "from_step": 13,
+                  "to_step": 15,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "contentId",
+                "target_values": [
+                  "137",
+                  "143",
+                  "146"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "137",
+                  "143",
+                  "146"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 4,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "143",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143"
+                  },
+                  {
+                    "step": 13,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "146",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                  },
+                  {
+                    "step": 15,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "137",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "contentId",
+                    "from_value": "143",
+                    "to_value": "146",
+                    "from_step": 4,
+                    "to_step": 13,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "contentId",
+                    "from_value": "146",
+                    "to_value": "137",
+                    "from_step": 13,
+                    "to_step": 15,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /like/like/like"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 4,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "143",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143"
+            },
+            {
+              "step": 13,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "146",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+            },
+            {
+              "step": 15,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "137",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "contentId",
+              "from_value": "143",
+              "to_value": "146",
+              "from_step": 4,
+              "to_step": 13,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "contentId",
+              "from_value": "146",
+              "to_value": "137",
+              "from_step": 13,
+              "to_step": 15,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "contentId",
+              "target_values": [
+                "137",
+                "143",
+                "146"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "137",
+                "143",
+                "146"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "143",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143"
+                },
+                {
+                  "step": 13,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "146",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "137",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "143",
+                  "to_value": "146",
+                  "from_step": 4,
+                  "to_step": 13,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "146",
+                  "to_value": "137",
+                  "from_step": 13,
+                  "to_step": 15,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792712",
+          "GET /space/space?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744248792713",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "GET /space/space/about?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744248792714",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792715",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792716",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792717",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792719",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792720",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+        ]
+      },
+      {
+        "session_id": "combined_185",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "contentId",
+              "distinct_value_count": 2,
+              "values": [
+                "151",
+                "152"
+              ],
+              "steps": [
+                5,
+                8
+              ],
+              "examples": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "151"
+                },
+                {
+                  "step": 8,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "152"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "151",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151"
+                },
+                {
+                  "step": 8,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "152",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "151",
+                  "to_value": "152",
+                  "from_step": 5,
+                  "to_step": 8,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "contentId",
+                "target_values": [
+                  "151",
+                  "152"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "151",
+                  "152"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "151",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151"
+                  },
+                  {
+                    "step": 8,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "152",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "contentId",
+                    "from_value": "151",
+                    "to_value": "152",
+                    "from_step": 5,
+                    "to_step": 8,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /like/like/like"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 5,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "151",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151"
+            },
+            {
+              "step": 8,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "152",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "contentId",
+              "from_value": "151",
+              "to_value": "152",
+              "from_step": 5,
+              "to_step": 8,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "contentId",
+              "target_values": [
+                "151",
+                "152"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "151",
+                "152"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 5,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "151",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151"
+                },
+                {
+                  "step": 8,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "152",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "151",
+                  "to_value": "152",
+                  "from_step": 5,
+                  "to_step": 8,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792723",
+          "GET /space/space?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744248792724",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"3sfoJdMOJYmp53P_QGrBBgID-46O0b7hdcdlnp8NI6q3k8Vh53x82P-LGswvGqZrc2yPz8iWioUWkgaz7E56nw==\",\"message\":\"无法大俄国 \",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"3sfoJdMOJYmp53P_QGrBBgID-46O0b7hdcdlnp8NI6q3k8Vh53x82P-LGswvGqZrc2yPz8iWioUWkgaz7E56nw==\",\"message\":\"无功而返热高度认同和\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=151",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"3sfoJdMOJYmp53P_QGrBBgID-46O0b7hdcdlnp8NI6q3k8Vh53x82P-LGswvGqZrc2yPz8iWioUWkgaz7E56nw==\",\"message\":\"热给他人\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=152",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792725",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792726",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792727",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792728",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792729",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792730"
+        ]
+      },
+      {
+        "session_id": "combined_187",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /like/like/like\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"点赞操作中内容ID脱离创建或浏览上下文导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "contentId",
+              "distinct_value_count": 3,
+              "values": [
+                "146",
+                "154",
+                "156"
+              ],
+              "steps": [
+                4,
+                10,
+                11
+              ],
+              "examples": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "154"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "156"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+                  "status": 0,
+                  "observed_parameter": "contentId",
+                  "value": "146"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "154",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "156",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "146",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "154",
+                  "to_value": "156",
+                  "from_step": 4,
+                  "to_step": 10,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "156",
+                  "to_value": "146",
+                  "from_step": 10,
+                  "to_step": 11,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "contentId",
+                "target_values": [
+                  "146",
+                  "154",
+                  "156"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "146",
+                  "154",
+                  "156"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 4,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "154",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154"
+                  },
+                  {
+                    "step": 10,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "156",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156"
+                  },
+                  {
+                    "step": 11,
+                    "api": "POST /like/like/like",
+                    "status": 0,
+                    "parameter": "contentId",
+                    "value": "146",
+                    "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "contentId",
+                    "from_value": "154",
+                    "to_value": "156",
+                    "from_step": 4,
+                    "to_step": 10,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "contentId",
+                    "from_value": "156",
+                    "to_value": "146",
+                    "from_step": 10,
+                    "to_step": 11,
+                    "from_api": "POST /like/like/like",
+                    "to_api": "POST /like/like/like",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /like/like/like"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "contentId 参数未出现在上游创建（POST /post/post/post 响应）或浏览上下文中，且请求返回 2xx。\n状态码分析\nresponse_body.id\nresponse_body.id\n247\n代表序列显示发布后紧接着点赞，参数252可能对应刚创建的帖子ID。\n若点赞接口返回 2xx 且 contentId 不可达，则风险成立。\n点赞操作影响较低，但可能用于刷榜或探测；状态码缺失导致无法确认是否绕过了权限校验（如403）。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 4,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "154",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154"
+            },
+            {
+              "step": 10,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "156",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156"
+            },
+            {
+              "step": 11,
+              "api": "POST /like/like/like",
+              "status": 0,
+              "parameter": "contentId",
+              "value": "146",
+              "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "contentId",
+              "from_value": "154",
+              "to_value": "156",
+              "from_step": 4,
+              "to_step": 10,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "contentId",
+              "from_value": "156",
+              "to_value": "146",
+              "from_step": 10,
+              "to_step": 11,
+              "from_api": "POST /like/like/like",
+              "to_api": "POST /like/like/like",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "contentId",
+              "target_values": [
+                "146",
+                "154",
+                "156"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "146",
+                "154",
+                "156"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 4,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "154",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "156",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /like/like/like",
+                  "status": 0,
+                  "parameter": "contentId",
+                  "value": "146",
+                  "request": "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "contentId",
+                  "from_value": "154",
+                  "to_value": "156",
+                  "from_step": 4,
+                  "to_step": 10,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "contentId",
+                  "from_value": "156",
+                  "to_value": "146",
+                  "from_step": 10,
+                  "to_step": 11,
+                  "from_api": "POST /like/like/like",
+                  "to_api": "POST /like/like/like",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/like"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792739",
+          "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792740",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "GET /space/space/about?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792741",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792742",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792743",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+        ]
+      }
+    ]
+  }
+}

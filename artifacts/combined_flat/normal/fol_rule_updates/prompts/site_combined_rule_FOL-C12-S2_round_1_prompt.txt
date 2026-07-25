@@ -1,0 +1,1804 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-C12-S2",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 74,
+      "false_positive_hit_count": 74,
+      "false_positive_rate": 0.030477759472817133
+    },
+    "rule": {
+      "fol_id": "FOL-C12-S2",
+      "scenario_title": "帖子发布 containerGuid 篡改导致的越权发布风险",
+      "security_type": "BOLA",
+      "risk_level": "high",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "GET /space/space?cguid=xxx -> POST /post/post/post(containerGuid=xxx)",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /user/profile/about",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "GET /user/account/change-email",
+              "GET /user/profile",
+              "GET /notification/list",
+              "POST /comment/comment/show",
+              "POST /like/like/unlike",
+              "POST /user/profile/unfollow"
+            ],
+            "parameters": [
+              "containerGuid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "containerGuid",
+                "api": "POST /post/post/post",
+                "location": "body",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "source_parameter": "cguid",
+                "target_parameter": "containerGuid",
+                "relation": "同一对象",
+                "explanation": "正常业务逻辑通常要求用户先进入空间(GET /space/space)，再在该空间内发布内容"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "containerGuid 参数值被篡改，不属于用户当前访问的空间上下文",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "containerGuid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /post/post/post"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "containerGuid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_182",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "containerGuid",
+              "distinct_value_count": 2,
+              "values": [
+                "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "steps": [
+                3,
+                4,
+                10,
+                11,
+                14
+              ],
+              "examples": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 4,
+                  "to_step": 10,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "containerGuid",
+                "target_values": [
+                  "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 3,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                    "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 4,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                    "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 10,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 11,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 14,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "containerGuid",
+                    "from_value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 4,
+                    "to_step": 10,
+                    "from_api": "POST /post/post/post",
+                    "to_api": "POST /post/post/post",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /post/post/post"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 3,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+              "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 4,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+              "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 10,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 11,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 14,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "containerGuid",
+              "from_value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 4,
+              "to_step": 10,
+              "from_api": "POST /post/post/post",
+              "to_api": "POST /post/post/post",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "containerGuid",
+              "target_values": [
+                "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "request": "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "027040fa-aea7-4d41-8ffc-06783111e1ce",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 4,
+                  "to_step": 10,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "POST /post/post/edit"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792707",
+          "GET /space/space?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce&_pjax=%23layout-content&_=1744248792708",
+          "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"啊我发的我发\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce BODY {\"_csrf\":\"eKprS_DZ3XGOUHfQPucb1uYiL4QlbJ_VTU4HTVBGvS0R_kYPxKuEINg8HuNRl3y7l01bxWMrq7EuG2RgIwXkGA==\",\"message\":\"的fw\",\"containerGuid\":\"027040fa-aea7-4d41-8ffc-06783111e1ce\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=139",
+          "GET /space/space/about?cguid=027040fa-aea7-4d41-8ffc-06783111e1ce&_pjax=%23layout-content&_=1744248792709",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792710",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792711",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"瓦房店违反w\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"为算法er\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=141",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=140",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"0bk35HQpHobbWG386UVFX6G3vAQ3PFDwWwP1N9HgLKS47RqgQFtH1400BM-GNSIy0NjIRXF7ZJQ4VpYaoqN1kQ==\",\"message\":\"分为\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=142&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"fzBV2vyFHjlS6t3RB-03VZN8_0LkQtPGGd4b_AqllBYWZHieyPdHaASGtOJonVA44hOLA6IF56J6i3jReebNIw==\",\"Post[message]\":\"的我分为分为\"}",
+          "POST /post/post/edit?id=142&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"D55LVwDMKPke4-4lfkpXbydEgsQvHFSzLlxcIjySJ9pmymYTNL5xqEiPhxYROjACViv2hWlbYNdNCT8PT9F-7w==\",\"Post[message]\":\"违反而无法 的我分为分为\"}"
+        ]
+      },
+      {
+        "session_id": "combined_183",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "containerGuid",
+              "distinct_value_count": 2,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "steps": [
+                3,
+                6,
+                11,
+                12,
+                18
+              ],
+              "examples": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 18,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 18,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 6,
+                  "to_step": 11,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "containerGuid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "c239fe95-c444-41e0-8090-50b27c1455f5"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "c239fe95-c444-41e0-8090-50b27c1455f5"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 3,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 6,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 11,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 12,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 18,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "containerGuid",
+                    "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 6,
+                    "to_step": 11,
+                    "from_api": "POST /post/post/post",
+                    "to_api": "POST /post/post/post",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /post/post/post"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 3,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 6,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 11,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 12,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 18,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "containerGuid",
+              "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 6,
+              "to_step": 11,
+              "from_api": "POST /post/post/post",
+              "to_api": "POST /post/post/post",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "containerGuid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 11,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 18,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 6,
+                  "to_step": 11,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "POST /post/post/post",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792712",
+          "GET /space/space?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744248792713",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"二手房而g\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=143",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"RIL477osmS6NupQkNXKaaCoMLBJUn3TvzRWls4n0uUst1tWrjl7Af9vW_RdaAv0FW2NYUxLYQIuuQMae-rfgfg==\",\"message\":\"割让给二哥哥热给发高热给\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "GET /space/space/about?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744248792714",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792715",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792716",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792717",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"二哥认同感\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"Rju14Nl9-IZVKlsNtVNN_5B-AcYtZNISPPbbSdLe-Ykvb5ik7Q-h1wNGMj7aIyqS4RF1h2sj5nZfo7hkoZ2gvA==\",\"message\":\"儿童和投入和如图\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=137",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792719",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792720",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"LxKExbhf4mOfStezzBcJJKnFf7WwTBw4VZU9Ao6akN1GRqmBjC27MskmvoCjZ25J2KoL9PYLKFw2wF4v_dnJ6A==\",\"message\":\"热给\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+        ]
+      },
+      {
+        "session_id": "combined_187",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "containerGuid",
+              "distinct_value_count": 2,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "steps": [
+                3,
+                5,
+                9
+              ],
+              "examples": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 9,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "containerGuid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 3,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 5,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 9,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "containerGuid",
+                    "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 5,
+                    "to_step": 9,
+                    "from_api": "POST /post/post/post",
+                    "to_api": "POST /post/post/post",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /post/post/post"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 3,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 5,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 9,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "containerGuid",
+              "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 5,
+              "to_step": 9,
+              "from_api": "POST /post/post/post",
+              "to_api": "POST /post/post/post",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "containerGuid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 9,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/like"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792739",
+          "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792740",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"雄安舒非常\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=154",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"NO8Fdea6DOvBH5kkudWvrKXUk1DcGLDusQGd1IYfvy1duygx0shVupdz8BfWpcjB1LvnEZpfhIrSVP759VzmGA==\",\"message\":\"v风湿热发热给\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "GET /space/space/about?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792741",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792742",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792743",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"V31ErLOyf1U-5HXxDO0m-5VTEymSFtl2x47mygeEiVM-KWnoh8AmBGiIHMJjnUGW5DxnaNRR7RKk24XndMfQZg==\",\"message\":\"而个人共同 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=156",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=146"
+        ]
+      },
+      {
+        "session_id": "combined_194",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "containerGuid",
+              "distinct_value_count": 2,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "steps": [
+                3,
+                5,
+                12
+              ],
+              "examples": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 12,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "containerGuid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 3,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 5,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 12,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "containerGuid",
+                    "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 5,
+                    "to_step": 12,
+                    "from_api": "POST /post/post/post",
+                    "to_api": "POST /post/post/post",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /post/post/post"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 3,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 5,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 12,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "containerGuid",
+              "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 5,
+              "to_step": 12,
+              "from_api": "POST /post/post/post",
+              "to_api": "POST /post/post/post",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "containerGuid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 5,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 12,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=164",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=165",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514798",
+          "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799",
+          "GET /space/space/about?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514800",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514801",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=166",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514803",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+        ]
+      },
+      {
+        "session_id": "combined_198",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /post/post/post\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布 containerGuid 篡改导致的越权发布风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "containerGuid",
+              "distinct_value_count": 2,
+              "values": [
+                "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "steps": [
+                3,
+                6,
+                9
+              ],
+              "examples": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "request": "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+                  "status": 0,
+                  "observed_parameter": "containerGuid",
+                  "value": "39f98689-c7ab-42be-bf24-7f4bffddb999"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "request": "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "to_value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "from_step": 6,
+                  "to_step": 9,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "containerGuid",
+                "target_values": [
+                  "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "c239fe95-c444-41e0-8090-50b27c1455f5"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "c239fe95-c444-41e0-8090-50b27c1455f5"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 3,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 6,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  },
+                  {
+                    "step": 9,
+                    "api": "POST /post/post/post",
+                    "status": 0,
+                    "parameter": "containerGuid",
+                    "value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                    "request": "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "containerGuid",
+                    "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                    "to_value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                    "from_step": 6,
+                    "to_step": 9,
+                    "from_api": "POST /post/post/post",
+                    "to_api": "POST /post/post/post",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /post/post/post"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求体中 containerGuid 值与用户会话上下文（当前所在空间、浏览空间）不匹配，且请求返回 2xx\n状态码分析\n79\n1\n2\n正常发帖请求返回 200\nPOST /post/post/post 返回 200，表明系统接受了 containerGuid 指定的发布位置\n发布操作属于高权限写操作，一旦越权成功影响较大，响应码 200 提示攻击可能有效"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 3,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 6,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            },
+            {
+              "step": 9,
+              "api": "POST /post/post/post",
+              "status": 0,
+              "parameter": "containerGuid",
+              "value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+              "request": "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "containerGuid",
+              "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+              "to_value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+              "from_step": 6,
+              "to_step": 9,
+              "from_api": "POST /post/post/post",
+              "to_api": "POST /post/post/post",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "containerGuid",
+              "target_values": [
+                "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                "c239fe95-c444-41e0-8090-50b27c1455f5"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 3,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 6,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "request": "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /post/post/post",
+                  "status": 0,
+                  "parameter": "containerGuid",
+                  "value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "request": "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "containerGuid",
+                  "from_value": "c239fe95-c444-41e0-8090-50b27c1455f5",
+                  "to_value": "39f98689-c7ab-42be-bf24-7f4bffddb999",
+                  "from_step": 6,
+                  "to_step": 9,
+                  "from_api": "POST /post/post/post",
+                  "to_api": "POST /post/post/post",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514818",
+          "GET /space/space?cguid=c239fe95-c444-41e0-8090-50b27c1455f5&_pjax=%23layout-content&_=1744249514819",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"为对方乳房额外f\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=170",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=170",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"_XovSRpeygI4_zO4c4yqjuBIA0ICQPmrtfmf97sl1uOULgINLiyTU26TWosc_M3jkSd3A0QHzc_WrPzayGaP1g==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"c239fe95-c444-41e0-8090-50b27c1455f5\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514820",
+          "GET /space/space?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999&_pjax=%23layout-content&_=1744249514821",
+          "POST /post/post/post?cguid=39f98689-c7ab-42be-bf24-7f4bffddb999 BODY {\"_csrf\":\"LJV40egAOMdEoj-27TbLHUQhl37_J07mapEb7X6MPwVFwVWV3HJhlhLOVoWCRqxwNU7jP7lgeoIJxHjADc9mMA==\",\"message\":\"无法割舍分隔 大概\",\"containerGuid\":\"39f98689-c7ab-42be-bf24-7f4bffddb999\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=172",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=172",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514822",
+          "GET /space/space?cguid=d2a8a798-ebe7-4013-a9c1-63959575b932&_pjax=%23layout-content&_=1744249514823",
+          "GET /space/space/about?cguid=d2a8a798-ebe7-4013-a9c1-63959575b932&_pjax=%23layout-content&_=1744249514824",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514825",
+          "GET /space/space?cguid=f1b463e4-dfdf-4ea5-aa00-ca19292c97f3&_pjax=%23layout-content&_=1744249514826",
+          "GET /space/space/about?cguid=f1b463e4-dfdf-4ea5-aa00-ca19292c97f3&_pjax=%23layout-content&_=1744249514827"
+        ]
+      }
+    ]
+  }
+}

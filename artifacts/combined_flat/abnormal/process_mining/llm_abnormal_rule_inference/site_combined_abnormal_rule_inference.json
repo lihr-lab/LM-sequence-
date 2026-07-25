@@ -1,0 +1,1223 @@
+{
+  "site_id": "combined",
+  "cluster_file": "artifacts\\combined_flat\\abnormal\\process_mining\\site_combined_business_session_clusters.json",
+  "review_policy": {
+    "max_clusters": 0,
+    "members_per_cluster": 3,
+    "max_steps": 40,
+    "min_confidence_sequence_length": 1,
+    "short_sequence_filtered_count": 0,
+    "skip_existing_reviews": true,
+    "reused_review_count": 0,
+    "new_review_count": 7,
+    "completed_new_review_count": 7,
+    "failed_review_count": 0,
+    "security_scenario_cluster_count": 7
+  },
+  "summary": {
+    "reviewed_clusters": 7,
+    "trustworthy_clusters": 7,
+    "untrustworthy_clusters": 0,
+    "avg_trust_score": 0.9271,
+    "possible_security_scenario_count": 13,
+    "low_trust_cluster_indexes": []
+  },
+  "reviews": [
+    {
+      "cluster_index": 1,
+      "is_trustworthy": true,
+      "trust_score": 0.95,
+      "business_pattern_name": "帖子编辑与发布接口的参数一致性破坏与越权尝试",
+      "attack_observation_summary": "会话通过重复调用编辑接口，保持目标帖子ID（id=24）不变，但频繁切换所属空间标识（cguid），表现出典型的对象级越权探测特征；同时在发布接口中构造URL参数与Body参数不一致的请求，尝试突破容器归属约束。",
+      "main_evidence": [
+        "编辑接口 POST /post/post/edit 中 id=24 被反复提交，但 cguid 在多个不同 UUID 间切换（e782abba、d68bbc02、2a61088c）",
+        "发布接口 POST /post/post/post 中 Query cguid 与 Body containerGuid 多次不一致",
+        "高频率重复的写操作（5次发布、5次编辑）伴随少量查询"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表会话清晰展示了参数注入和上下文混淆的攻击行为，未见正常业务逻辑",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C1-S1",
+          "scenario_title": "帖子编辑接口对象级越权（BOLA）- 归属上下文切换",
+          "security_type": "BOLA",
+          "risk_level": "high",
+          "risk_score": 0.9,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者保持 id=24 不变，尝试将其归属的空间 cguid 从 A 切换到 B、C，探测是否存在越权编辑漏洞。",
+          "attack_observation": "在 POST /post/post/edit 接口中，目标对象 id=24 被固定使用，但其所属空间参数 cguid 在多次请求中不断变化（如 e782abba, d68bbc02, 2a61088c），打破了对象与归属空间的正常绑定关系。",
+          "attack_point": "服务端可能未校验 'id=24' 是否真正属于 'cguid' 指定的空间，或仅校验了用户对 id 的编辑权限而忽略了归属一致性。",
+          "attack_method": "参数替换与上下文枚举，利用固定的对象ID配合变化的上下文ID进行越权探测。",
+          "hit_condition": "同一个目标对象ID（id）在短时间内关联了多个不同的上下文ID（cguid），或请求中的 cguid 与目标对象的实际归属不符。",
+          "analysis_dimensions": [
+            "参数分析",
+            "请求频率分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "high",
+            "key_parameters_or_objects": [
+              "id",
+              "cguid"
+            ],
+            "target_apis": [
+              "POST /post/post/edit"
+            ],
+            "context_apis": [
+              "GET /space/space"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 应稳定且与 id 的归属一致",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /post/post/edit",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameter_dependency_relation": "bound_to_upstream_context",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "id",
+                "api": "POST /post/post/edit",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /post/post/edit",
+                "location": "query",
+                "role": "context_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/edit",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "编辑操作应限定在通过 /space/space 确认的当前空间上下文中"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "id",
+                  "cguid"
+                ],
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/edit",
+                "source_parameter": "cguid",
+                "target_parameter": "id, cguid",
+                "relationship": "归属依赖",
+                "risky_form": "id 固定，cguid 枚举/切换",
+                "case_reason": "同一目标对象被尝试关联到多个不同的上下文，典型的 BOLA 探测特征"
+              }
+            ],
+            "risky_parameter_form": "目标对象ID与上下文ID不匹配或多值切换",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "unknown": 3222
+            },
+            "sequence_status_observation": "代表序列全为 status_code 0，虽无法确认HTTP响应，但参数行为本身已构成高风险证据。",
+            "risk_level_adjustment_reason": "状态码缺失不影响对参数异常逻辑的判定，风险等级维持 High。"
+          },
+          "overall_reason": "攻击者通过固定对象ID并切换空间ID的方式探测编辑接口的越权漏洞，参数逻辑异常清晰。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C1-S2",
+          "scenario_title": "帖子发布接口参数注入（BOLA）- 容器归属篡改",
+          "security_type": "BOLA",
+          "risk_level": "high",
+          "risk_score": 0.85,
+          "risk_type": "parameter_consistency",
+          "risk_example": "请求 URL 显示空间 A (cguid=A)，但 Body 中指定发布到容器 B (containerGuid=B)。",
+          "attack_observation": "在 POST /post/post/post 接口中，Query 参数 cguid 与 Body 参数 containerGuid 出现明显不一致（如 step 4, 8, 17），表明攻击者试图在当前空间上下文下向其他空间发布内容。",
+          "attack_point": "服务端可能未对 Query 中的 cguid 和 Body 中的 containerGuid 进行一致性校验，或仅使用了 Body 中的值而忽略了对 URL 上下文权限的校验。",
+          "attack_method": "参数注入，构造请求内部参数冲突以绕过前端或中间件校验。",
+          "hit_condition": "Request Query cguid != Request Body containerGuid。",
+          "analysis_dimensions": [
+            "参数分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "high",
+            "key_parameters_or_objects": [
+              "cguid",
+              "containerGuid"
+            ],
+            "target_apis": [
+              "POST /post/post/post"
+            ],
+            "context_apis": [
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about"
+            ],
+            "normal_parameter_sequence": [
+              "Query cguid 应与 Body containerGuid 一致",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /post/post/edit",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameter_dependency_relation": "stable_within_target_api",
+            "expected_parameter_source": "same_request_or_business_context",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /post/post/post",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "containerGuid",
+                "api": "POST /post/post/post",
+                "location": "body",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space/about",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space/about",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid",
+                  "containerGuid"
+                ],
+                "source_api": "",
+                "target_api": "POST /post/post/post",
+                "source_parameter": "",
+                "target_parameter": "cguid, containerGuid",
+                "relationship": "同一对象",
+                "risky_form": "值不一致",
+                "case_reason": "请求内部出现两个代表同一业务实体的参数值不一致，是明确的注入攻击特征"
+              }
+            ],
+            "risky_parameter_form": "Query 与 Body 参数不一致",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "unknown": 3222
+            },
+            "sequence_status_observation": "状态码缺失，但参数冲突本身逻辑明确。",
+            "risk_level_adjustment_reason": "参数证据确凿，无需状态码佐证。"
+          },
+          "overall_reason": "发布接口存在明显的请求内部参数不一致，攻击者利用此缺陷尝试跨空间发布内容。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "当前聚类参数成功捕获了参数注入和越权探测行为，簇内样本行为高度一致，建议保持参数以继续检测此类攻击。"
+      }
+    },
+    {
+      "cluster_index": 2,
+      "is_trustworthy": true,
+      "trust_score": 0.95,
+      "business_pattern_name": "跨租户枚举与管理接口未授权扫描",
+      "attack_observation_summary": "会话从普通用户空间上下文开始，随后尝试跨空间枚举GUID（cguid），最终在无显式管理员登录的情况下高频访问管理接口并重复请求更新接口。",
+      "main_evidence": [
+        "会话中 cguid 参数发生切换（从 b177d8bb 切换至 0566b5df），存在跨对象访问尝试",
+        "在用户空间操作上下文中直接调用 /admin/module/list 管理接口",
+        "GET /marketplace/update 和 GET /admin/module/list 被高频重复调用（各约10次）"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表序列完整展示了从业务操作到权限提升尝试再到资源消耗的攻击链路，异常特征显著。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C2-S2",
+          "scenario_title": "邀请接口参数 cguid 跨对象枚举",
+          "security_type": "BOLA",
+          "risk_level": "medium",
+          "risk_score": 0.75,
+          "risk_type": "parameter_consistency",
+          "risk_example": "会话中 cguid 从 b177d8bb 切换至 0566b5df，尝试访问不同空间的邀请列表。",
+          "attack_observation": "在 GET /space/space?cguid=b177... 建立上下文后，第6步 GET /space/membership/invite 使用了不同的 cguid=0566b5df。",
+          "attack_point": "邀请列表接口仅校验 cguid 是否存在，未校验当前用户是否属于该空间。",
+          "attack_method": "替换 query 参数中的 cguid 进行对象级越权访问。",
+          "hit_condition": "同一会话中，cguid 参数值发生变化，且目标接口涉及敏感对象数据。",
+          "analysis_dimensions": [
+            "参数分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "medium",
+            "key_parameters_or_objects": [
+              "cguid",
+              "UUID"
+            ],
+            "target_apis": [
+              "GET /space/membership/invite"
+            ],
+            "context_apis": [
+              "GET /space/space"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 应保持单一值，或仅限于用户所属空间列表。",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/membership/invite",
+              "POST /space/membership/invite",
+              "GET /notification/list",
+              "GET /marketplace/update",
+              "GET /admin/module/list"
+            ],
+            "parameter_dependency_relation": "bound_to_upstream_context",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "GET /space/membership/invite",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "GET /space/membership/invite",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "邀请查询接口的 cguid 应来源于当前进入的空间上下文。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid"
+                ],
+                "source_api": "GET /space/space",
+                "target_api": "GET /space/membership/invite",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relationship": "参数值一致性",
+                "risky_form": "会话内参数值切换/枚举",
+                "case_reason": "同一会话中 cguid 出现两个不同值，且后者未在上下文中加载。"
+              }
+            ],
+            "risky_parameter_form": "参数值在会话内发生非一致性切换",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "参数切换后请求继续执行，未立即中断，推测越权尝试可能成功或未触发严格校验。",
+            "parameter_api_status_observation": "接口持续被调用，无异常状态码返回。",
+            "risk_level_adjustment_reason": "缺乏403/404证据，无法确认越权是否成功，但参数行为已具备攻击特征。"
+          },
+          "overall_reason": "同一会话中 cguid 参数发生切换，且目标接口未验证用户对该对象的归属权，存在对象级越权风险。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C2-S3",
+          "scenario_title": "更新与管理接口高频重复调用",
+          "security_type": "RESOURCE_CONSUMPTION",
+          "risk_level": "medium",
+          "risk_score": 0.7,
+          "risk_type": "sequence_order",
+          "risk_example": "GET /marketplace/update 和 GET /admin/module/list 在短时间内被重复请求各约10次。",
+          "attack_observation": "攻击者在会话末尾对 GET /marketplace/update 和 GET /admin/module/list 进行了密集的重复请求（代表序列中各约10次，成员 combined_265 中更多）。",
+          "attack_point": "接口未实施请求频率限制或对批量操作进行防御。",
+          "attack_method": "短时间高频重复请求，消耗服务器资源或探测数据变化。",
+          "hit_condition": "单一 API 在短时间（如10秒）内重复调用次数超过阈值（如 >5次）。",
+          "analysis_dimensions": [
+            "顺序分析"
+          ],
+          "sequence_order_risk": {
+            "risk_level": "medium",
+            "sequence_subtype": "repeated_call",
+            "normal_sequence_pattern": [
+              "GET /marketplace/update",
+              "GET /admin/module/list"
+            ],
+            "possible_violation_sequence_pattern": [
+              "GET /marketplace/update",
+              "GET /marketplace/update",
+              "GET /marketplace/update",
+              "GET /admin/module/list",
+              "GET /admin/module/list"
+            ],
+            "violated_order_constraint": "接口被非必要的连续高频重复调用。",
+            "missing_or_reordered_step": "重复步骤冗余。",
+            "why_this_order_is_risky": "高频请求可能导致服务端资源耗尽，或用于自动化探测。",
+            "authorization_precheck": {
+              "precheck_required": false,
+              "precheck_api": "",
+              "required_response_keywords": [],
+              "max_interval_seconds": 0,
+              "browser_context_required": false
+            },
+            "related_apis": [
+              "GET /marketplace/update",
+              "GET /admin/module/list"
+            ]
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "大量重复请求未见状态码异常，表明服务器可能未进行速率限制拦截。",
+            "target_api_status_observation": "重复请求持续存在，未触发429或5xx错误。",
+            "risk_level_adjustment_reason": "缺乏拦截证据提升了资源消耗攻击的实际威胁。"
+          },
+          "overall_reason": "短时间内对特定接口的密集重复调用，缺乏频率限制，构成资源消耗风险。",
+          "later_check_hint": "重点检查 sequence_order_risk 中的正常链路与违规链路，不把参数替换作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "当前聚类参数成功捕获了包含BFLA、BOLA和资源消耗特征的异常会话簇，样本量适中，特征鲜明，无需调整。"
+      }
+    },
+    {
+      "cluster_index": 3,
+      "is_trustworthy": true,
+      "trust_score": 0.85,
+      "business_pattern_name": "用户关注与账户配置接口高频滥用及参数割裂攻击",
+      "attack_observation_summary": "攻击者使用脚本对关注/取消关注接口进行极高频率的重复调用（单会话超过20次），并异常高频访问账户设置页面；同时观察到关注与取消关注操作的目标对象ID（cguid）在同会话中存在割裂，疑似批量刷量或对象枚举。",
+      "main_evidence": [
+        "POST /user/profile/follow 单会话调用次数高达 24 次",
+        "GET /user/account/change-username 单会话调用次数高达 23 次",
+        "POST /user/profile/unfollow 的参数 cguid 与同会话中 follow 的 cguid 不一致（如 follow 98cb... 后 unfollow 9ffc...）"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表会话完整展示了高频资源消耗与参数割裂两种异常行为，具有高置信度。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C3-S2",
+          "scenario_title": "edit 重复调用资源消耗风险",
+          "security_type": "RESOURCE_CONSUMPTION",
+          "risk_level": "medium",
+          "risk_score": 0.7,
+          "risk_type": "sequence_order",
+          "risk_example": "攻击者在短时间内请求账户修改页面 20 余次，可能是在探测页面结构或维持会话。",
+          "attack_observation": "GET /user/account/change-username 和 GET /user/account/edit 在会话中各被调用 20+ 次，远超正常用户修改一次配置的需求。",
+          "attack_point": "页面渲染接口缺乏防爬或频率限制。",
+          "attack_method": "高频读取/页面枚举",
+          "hit_condition": "单一会话内 GET /user/account/change-username 或 edit 调用次数 > 阈值（如 5 次）。",
+          "analysis_dimensions": [
+            "顺序分析",
+            "频率分析"
+          ],
+          "sequence_order_risk": {
+            "risk_level": "medium",
+            "sequence_subtype": "repeated_call",
+            "normal_sequence_pattern": [
+              "GET /user/account/edit",
+              "POST /user/account/edit"
+            ],
+            "possible_violation_sequence_pattern": [
+              "GET /user/account/edit",
+              "GET /user/account/edit",
+              "GET /user/account/edit",
+              "GET /user/account/change-username",
+              "GET /user/account/change-username"
+            ],
+            "violated_order_constraint": "页面访问频率约束",
+            "missing_or_reordered_step": "缺失正常的 POST 提交或页面跳转，仅有死循环式的 GET 请求。",
+            "why_this_order_is_risky": "造成服务器带宽和计算资源浪费，或用于探测敏感路径。",
+            "authorization_precheck": {
+              "precheck_required": false,
+              "precheck_api": "",
+              "required_response_keywords": [],
+              "max_interval_seconds": 0,
+              "browser_context_required": false
+            },
+            "related_apis": []
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "unknown": 908
+            },
+            "sequence_status_observation": "状态码缺失，异常行为主要体现在数量级上。",
+            "risk_level_adjustment_reason": "页面级高频访问风险略低于核心写接口，定级为中。"
+          },
+          "overall_reason": "异常高频的页面访问行为，疑似自动化探测或资源滥用。",
+          "later_check_hint": "重点检查 sequence_order_risk 中的正常链路与违规链路，不把参数替换作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C3-S3",
+          "scenario_title": "关注操作目标对象不一致异常",
+          "security_type": "BOLA",
+          "risk_level": "medium",
+          "risk_score": 0.6,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者先关注用户 A，随后立即取消关注用户 B（非 A），显示参数来源异常。",
+          "attack_observation": "在 combined_216 会话中，攻击者多次 POST /user/profile/follow?cguid=98cb... 后，调用 POST /user/profile/unfollow?cguid=9ffc...。操作的目标对象 ID 在同会话内割裂。",
+          "attack_point": "服务端未校验 unfollow 对象是否属于当前会话上下文建立的关系，或攻击者正在批量枚举用户 ID。",
+          "attack_method": "参数枚举/跨上下文使用",
+          "hit_condition": "POST /user/profile/unfollow 的 cguid 值未在之前的 POST /user/profile/follow 中出现过。",
+          "analysis_dimensions": [
+            "参数分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "medium",
+            "key_parameters_or_objects": [
+              "cguid"
+            ],
+            "target_apis": [
+              "POST /user/profile/unfollow"
+            ],
+            "context_apis": [
+              "POST /user/profile/follow"
+            ],
+            "normal_parameter_sequence": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow",
+              "GET /user/people",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "GET /user/account/change-email"
+            ],
+            "parameter_dependency_relation": "bound_to_upstream_context",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "POST /user/profile/follow",
+                "target_api": "POST /user/profile/unfollow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "正常业务中，unfollow 的对象通常是之前 follow 的对象，或者存在于用户关注列表中。参数割裂暗示脚本在轮换 ID。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid"
+                ],
+                "source_api": "POST /user/profile/follow",
+                "target_api": "POST /user/profile/unfollow",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relationship": "一致性",
+                "risky_form": "值不匹配",
+                "case_reason": "检测非连续、跨对象的操作行为，识别批量脚本。"
+              }
+            ],
+            "risky_parameter_form": "unfollow 的 cguid 与 follow 的 cguid 不一致",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "unknown": 908
+            },
+            "sequence_status_observation": "参数割裂行为本身独立于响应码，即使返回错误也表明探测尝试。",
+            "risk_level_adjustment_reason": "参数一致性风险独立存在。"
+          },
+          "overall_reason": "同会话内关注/取消关注对象 ID 不一致，暴露了自动化脚本批量操作或枚举 ID 的特征。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "聚类成功分离出高频资源滥用与参数异常行为，参数设置合理，无需调整。"
+      }
+    },
+    {
+      "cluster_index": 4,
+      "is_trustworthy": true,
+      "trust_score": 0.92,
+      "business_pattern_name": "自动化用户关注/取关循环与账户功能探测",
+      "attack_observation_summary": "会话表现出显著的自动化特征，通过 python-requests 客户端在短时间内高频、交替访问用户关注/取关接口与账户管理页面。攻击者针对不同的 cguid (用户ID) 反复执行关注与取关操作，形成资源消耗与潜在的垃圾流量攻击；同时高频遍历 change-email、change-username 等敏感功能页面，疑似探测接口或维持会话。",
+      "main_evidence": [
+        "User-Agent: python-requests/2.32.3 标识自动化脚本",
+        "短时间内重复调用 POST /user/profile/follow 与 POST /user/profile/unfollow 接口",
+        "针对多个不同 cguid (如 86c141b9..., 9ffc5154..., d9c8125d...) 进行交叉操作",
+        "穿插高频访问 GET /user/account/change-email 等敏感页面 (单会话 5 次)"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表会话清晰展示了针对 cguid 对象的批量操作行为和页面循环访问模式，足以反推规则。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C4-S1",
+          "scenario_title": "自动化关注/取关资源消耗",
+          "security_type": "RESOURCE_CONSUMPTION",
+          "risk_level": "high",
+          "risk_score": 0.9,
+          "risk_type": "sequence_order",
+          "risk_example": "脚本在短时间内对同一用户或多个用户交替执行 follow 和 unfollow 操作，造成数据库频繁写入。",
+          "attack_observation": "会话中 POST /user/profile/follow 和 POST /user/profile/unfollow 被高频交替调用（各 4-5 次），且针对不同的 cguid 目标，形成明显的写操作风暴。",
+          "attack_point": "服务端可能缺少对单用户关注/取关操作频率的限制，或缺少对 'follow -> unfollow' 逆向操作序列的速率限制。",
+          "attack_method": "重复高成本请求",
+          "hit_condition": "检测会话内 POST /user/profile/follow 和 POST /user/profile/unfollow 的调用次数总和是否超过阈值（如 >3次），或是否存在针对多个不同 cguid 的交替调用。",
+          "analysis_dimensions": [
+            "API频率分析",
+            "序列分析"
+          ],
+          "sequence_order_risk": {
+            "risk_level": "high",
+            "sequence_subtype": "repeated_call",
+            "normal_sequence_pattern": [
+              "GET /user/people",
+              "POST /user/profile/follow"
+            ],
+            "possible_violation_sequence_pattern": [
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow",
+              "POST /user/profile/follow",
+              "GET /user/people",
+              "POST /user/profile/unfollow"
+            ],
+            "violated_order_constraint": "正常业务不应在短时间内对同一对象或多个对象进行反复、交替的 '关注-取关' 操作。",
+            "missing_or_reordered_step": "存在高频、循环的 API 调用序列，缺乏合理的业务停顿或页面停留。",
+            "why_this_order_is_risky": "高频写操作序列表明自动化脚本正在滥用接口功能，可能导致数据库负载过高或被用于刷粉/刷量垃圾行为。",
+            "authorization_precheck": {
+              "precheck_required": false,
+              "precheck_api": "",
+              "required_response_keywords": [],
+              "max_interval_seconds": 300,
+              "browser_context_required": false
+            },
+            "related_apis": [
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ]
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "状态码全为 0 (未记录)，但请求结构完整，属于典型的自动化探测特征。",
+            "target_api_status_observation": "POST 请求携带 Content-Length: 0，若成功执行将产生资源消耗。",
+            "risk_level_adjustment_reason": "无状态码削弱了攻击成功的确定性，但高频请求序列和自动化特征足以判定为高风险异常行为。"
+          },
+          "overall_reason": "检测到针对关注/取关接口的高频逆向循环调用，结合 python-requests UA，确认为自动化资源消耗行为。",
+          "later_check_hint": "重点检查 sequence_order_risk 中的正常链路与违规链路，不把参数替换作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C4-S2",
+          "scenario_title": "用户对象 cguid 跨上下文高频操作 (BOLA/Enumeration)",
+          "security_type": "BOLA",
+          "risk_level": "medium",
+          "risk_score": 0.75,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者在未通过 people 搜索结果页获取特定用户的情况下，直接使用枚举或外部导入的 cguid 调用 follow 接口。",
+          "attack_observation": "POST 请求中使用的 cguid 参数 (如 86c141b9..., 9ffc5154...) 在会话中快速切换。虽然部分可能来自 GET /user/people，但针对不同 ID 的密集操作暗示 cguid 可能被作为攻击载荷直接传递，而非正常的逐个交互。",
+          "attack_point": "接口仅校验 cguid 格式或权限，未校验当前用户是否在 'people' 列表页上下文中查看过该目标，允许直接通过 API 操作任意可见对象。",
+          "attack_method": "替换对象ID / 枚举参数",
+          "hit_condition": "检测 POST /user/profile/follow 中的 cguid 参数是否在上下文 API GET /user/people 的响应中出现（需响应解析支持），或检测短时间内针对不同 cguid 的操作密度。",
+          "analysis_dimensions": [
+            "参数分析",
+            "序列分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "medium",
+            "key_parameters_or_objects": [
+              "cguid"
+            ],
+            "target_apis": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "context_apis": [
+              "GET /user/people"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 应从 GET /user/people 响应中提取，并在随后的 follow/unfollow 操作中保持稳定或逐一对应。",
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "GET /user/account/change-email",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "POST /user/profile/unfollow"
+            ],
+            "parameter_dependency_relation": "derived_from_context_api",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "POST 操作的目标用户 ID 应来源于 GET 搜索结果，防止直接遍历 ID 进行攻击。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid"
+                ],
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relationship": "上下文绑定",
+                "risky_form": "高频切换值 / 来源不明",
+                "case_reason": "检测是否存在大量非上下文来源的 cguid 调用，这是对象级越权或批量枚举的典型特征。"
+              }
+            ],
+            "risky_parameter_form": "单会话内 cguid 值不固定，呈现明显的多目标切换特征。",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "状态码缺失无法判断对象是否存在或权限校验结果，需依赖参数一致性推断。",
+            "target_api_status_observation": "若返回 404 则说明对象不存在 (枚举失败)，若返回 200 则越权成功。",
+            "risk_level_adjustment_reason": "由于无法验证 cguid 是否真正绑定到上下文，定性为 Medium 风险的参数异常。"
+          },
+          "overall_reason": "检测到对关注接口的 cguid 参数进行高频、多值切换操作，疑似批量操作或枚举，违反参数上下文一致性。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "聚类已成功识别出具有明显自动化特征的攻击会话，参数 eps 和 min_samples 设置合理，无需调整。"
+      }
+    },
+    {
+      "cluster_index": 5,
+      "is_trustworthy": true,
+      "trust_score": 0.95,
+      "business_pattern_name": "普通用户上下文遍历管理接口与空间对象枚举攻击",
+      "attack_observation_summary": "会话在普通用户业务上下文中穿插访问管理员模块列表接口（/admin/module/list），并针对多个不同的 Space ID（cguid）高频尝试访问空间管理及安全设置接口，表现出明显的权限提升尝试和对象枚举特征。",
+      "main_evidence": [
+        "普通用户上下文（GET /user/people）下直接访问管理接口 GET /admin/module/list",
+        "短时间内针对多个不同 cguid（0566b5df..., c239fe95..., 78d3f2d5...）重复调用 GET /space/manage/security 和 GET /space/manage",
+        "请求序列缺乏正常业务逻辑顺序，呈现扫描/遍历特征"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表性会话清晰展示了BFLA和BOLA攻击特征，能有效反推安全规则。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C5-S1",
+          "scenario_title": "dashboard 业务顺序约束绕过风险",
+          "security_type": "AUTH_BYPASS",
+          "risk_level": "high",
+          "risk_score": 0.9,
+          "risk_type": "sequence_order",
+          "risk_example": "攻击者在普通用户会话中直接请求 /admin/module/list 接口，试图获取系统模块信息或后台管理权限。",
+          "attack_observation": "会话中出现了普通用户操作接口（GET /user/people, GET /user/account/edit）与管理员接口（GET /admin/module/list）的混杂调用，且无管理员登录/权限提升前置。",
+          "attack_point": "服务端对 /admin/module/list 接口可能仅做了页面级的隐藏或菜单级控制，未在 API 层实施严格的 Role/Permission 校验。",
+          "attack_method": "直接调用/URL 猜测",
+          "hit_condition": "会话上下文包含普通用户接口，且请求路径包含 /admin/ 前缀的功能接口。",
+          "analysis_dimensions": [
+            "顺序分析",
+            "路径分析"
+          ],
+          "sequence_order_risk": {
+            "risk_level": "high",
+            "sequence_subtype": "authorization_precheck",
+            "normal_sequence_pattern": [
+              "GET /admin/login",
+              "GET /admin/dashboard"
+            ],
+            "possible_violation_sequence_pattern": [
+              "GET /user/people",
+              "GET /admin/module/list"
+            ],
+            "violated_order_constraint": "访问 Admin 功能接口前缺失管理员身份认证或权限提升步骤。",
+            "missing_or_reordered_step": "缺失 Admin Login 或 Role Switch 步骤。",
+            "why_this_order_is_risky": "低权限用户上下文直接访问高权限管理接口，构成垂直越权。",
+            "authorization_precheck": {
+              "precheck_required": true,
+              "precheck_api": "",
+              "required_response_keywords": [],
+              "max_interval_seconds": 300,
+              "browser_context_required": false
+            },
+            "related_apis": [
+              "GET /user/people",
+              "GET /user/account/edit",
+              "GET /admin/module/list"
+            ]
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "0": 441
+            },
+            "sequence_status_observation": "当前日志缺失状态码，无法判断服务端是否拦截，但请求本身构成攻击尝试。",
+            "risk_level_adjustment_reason": "状态码缺失导致无法确认攻击是否成功，但基于访问行为确认风险存在。"
+          },
+          "overall_reason": "普通用户上下文直接访问 /admin/module/list 管理接口，严重违反最小权限原则，构成 BFLA 风险。",
+          "later_check_hint": "重点检查 sequence_order_risk 中的正常链路与违规链路，不把参数替换作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C5-S2",
+          "scenario_title": "空间管理接口对象 ID 枚举与批量访问",
+          "security_type": "BOLA",
+          "risk_level": "high",
+          "risk_score": 0.88,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者在短时间内使用不同的 cguid 值遍历访问 /space/manage 和 /space/manage/security 接口，试图控制非授权空间。",
+          "attack_observation": "会话中针对 /space/manage/security 和 /space/manage 接口，使用了至少 5 个不同的 cguid 参数值进行访问，且这些值未在 /space/spaces 列表返回结果中被明确绑定（基于参数变化推断）。",
+          "attack_point": "接口仅依赖 cguid 参数识别目标对象，未校验当前用户是否对该 Space ID 具有管理权限。",
+          "attack_method": "枚举参数/对象 ID 替换",
+          "hit_condition": "在短时间会话内，同一目标 API 的关键对象 ID 参数（cguid）发生多次切换或不一致。",
+          "analysis_dimensions": [
+            "参数分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "high",
+            "key_parameters_or_objects": [
+              "cguid"
+            ],
+            "target_apis": [
+              "GET /space/manage/security",
+              "GET /space/manage"
+            ],
+            "context_apis": [
+              "GET /space/spaces"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 参数应来源于 GET /space/spaces 返回的用户有权管理的空间列表",
+              "GET /space/spaces",
+              "GET /user/people",
+              "GET /space/manage/security",
+              "GET /space/space",
+              "GET /admin/module/list",
+              "GET /user/account/edit",
+              "GET /space/manage",
+              "GET /user/account/change-username",
+              "GET /marketplace/purchase",
+              "GET /notification/list"
+            ],
+            "parameter_dependency_relation": "bound_to_upstream_context",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/manage/security",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "GET /space/manage",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "GET /space/manage/security",
+                "parameter": "cguid",
+                "source_parameter": "id",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "正常业务中，用户访问管理页面的 cguid 应当属于其可见的空间列表。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid"
+                ],
+                "source_api": "GET /space/spaces",
+                "target_api": "GET /space/manage/security",
+                "source_parameter": "id",
+                "target_parameter": "cguid",
+                "relationship": "归属依赖",
+                "risky_form": "枚举/多值切换",
+                "case_reason": "单会话内 cguid 值频繁变化（枚举特征），违反了参数应来自用户授权列表的一致性约束。"
+              }
+            ],
+            "risky_parameter_form": "同一会话内针对不同对象 ID 的多值切换访问",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "0": 441
+            },
+            "sequence_status_observation": "日志缺失状态码，无法确认对象是否存在或权限校验结果，但参数行为符合 BOLA 攻击特征。",
+            "risk_level_adjustment_reason": "参数行为异常证据确凿，风险等级定为 High。"
+          },
+          "overall_reason": "攻击者通过修改 cguid 参数遍历访问多个空间的管理接口，典型的 BOLA 对象级越权攻击模式。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "当前参数配置成功聚类出具有明显 BFLA 和 BOLA 特征的异常会话，聚类效果良好，建议保持。"
+      }
+    },
+    {
+      "cluster_index": 6,
+      "is_trustworthy": true,
+      "trust_score": 0.92,
+      "business_pattern_name": "异常高频设置探测与关注对象枚举",
+      "attack_observation_summary": "会话表现出对用户设置接口（特别是 change-email）的极高频率重复调用（Resource Consumption），同时包含关注/取关操作，且取关对象与关注对象存在参数不一致现象（BOLA）。",
+      "main_evidence": [
+        "GET /user/account/change-email 在单一会话中被调用 35 次，远超正常业务需求。",
+        "POST /user/profile/follow 与 POST /user/profile/unfollow 在相邻步骤中对不同的 cguid 进行操作（关注 A 后取关 B）。",
+        "User-Agent 为 python-requests/2.32.3，确认为自动化脚本。",
+        "会话混合了账户设置页面的探测与社交功能的自动化操作。"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表会话清晰地展示了了对特定接口的高频撞线行为和关注对象的不一致性，适合反推资源消耗和越权规则。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C6-S1",
+          "scenario_title": "用户设置接口高频探测与资源消耗",
+          "security_type": "RESOURCE_CONSUMPTION",
+          "risk_level": "high",
+          "risk_score": 0.9,
+          "risk_type": "sequence_order",
+          "risk_example": "攻击者使用脚本在短时间内连续请求 GET /user/account/change-email 接口 35 次，可能导致服务器压力或触发未知逻辑。",
+          "attack_observation": "代表会话中 GET /user/account/change-email 接口连续出现 35 次，且无明显业务参数变化，属于典型的高频重复调用。",
+          "attack_point": "服务端未对该低权限查询接口实施频率限制或请求总数阈值控制。",
+          "attack_method": "重复高成本请求",
+          "hit_condition": "单一会话内，目标 API GET /user/account/change-email 出现次数 > 10 次。",
+          "analysis_dimensions": [
+            "频次分析",
+            "顺序分析"
+          ],
+          "sequence_order_risk": {
+            "risk_level": "high",
+            "sequence_subtype": "repeated_call",
+            "normal_sequence_pattern": [
+              "GET /user/account/edit",
+              "GET /user/account/change-email"
+            ],
+            "possible_violation_sequence_pattern": [
+              "GET /user/account/change-email",
+              "GET /user/account/change-email",
+              "GET /user/account/change-email",
+              "... (Repeated 35 times)"
+            ],
+            "violated_order_constraint": "同一低变更频率接口在短时间内被过度重复调用。",
+            "missing_or_reordered_step": "缺失正常的业务停顿或页面跳转，连续重复请求。",
+            "why_this_order_is_risky": "高频重复请求消耗服务器资源，可能是爆破、扫描或客户端逻辑死循环。",
+            "authorization_precheck": {
+              "precheck_required": false,
+              "precheck_api": "",
+              "required_response_keywords": [],
+              "max_interval_seconds": 0,
+              "browser_context_required": false
+            },
+            "related_apis": [
+              "GET /user/account/edit"
+            ]
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "状态码未知，但极高频率的行为本身已构成强风险证据。",
+            "risk_level_adjustment_reason": "行为特征（35次重复）明显异常，风险评级主要依据频次证据。"
+          },
+          "overall_reason": "自动化脚本对用户设置接口进行高频撞击，存在资源消耗风险，建议增加频控规则。",
+          "later_check_hint": "重点检查 sequence_order_risk 中的正常链路与违规链路，不把参数替换作为本场景主证据。"
+        },
+        {
+          "scenario_id": "C6-S2",
+          "scenario_title": "关注/取关操作对象不一致性越权",
+          "security_type": "BOLA",
+          "risk_level": "medium",
+          "risk_score": 0.75,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者在一次会话中先关注用户 A，随即尝试取关用户 B，试图绕过业务逻辑校验或进行对象枚举。",
+          "attack_observation": "在步骤 41 和 42 中，POST /user/profile/follow 的 cguid 为 98cb7660... 而 POST /user/profile/unfollow 的 cguid 为 d9c8125d...，对象 ID 不一致。",
+          "attack_point": "服务端未校验 unfollow 操作的对象是否为当前会话刚刚 follow 的对象，或未严格校验操作权限。",
+          "attack_method": "跨对象/跨上下文参数替换",
+          "hit_condition": "在相邻的 follow/unfollow 操作对中，target_parameter cguid 不一致。",
+          "analysis_dimensions": [
+            "参数分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "medium",
+            "key_parameters_or_objects": [
+              "cguid"
+            ],
+            "target_apis": [
+              "POST /user/profile/unfollow",
+              "POST /user/profile/follow"
+            ],
+            "context_apis": [
+              "GET /user/people"
+            ],
+            "normal_parameter_sequence": [
+              "follow(cguid=A) -> unfollow(cguid=A)",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-email",
+              "GET /user/account/change-username",
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "parameter_dependency_relation": "stable_within_target_api",
+            "expected_parameter_source": "upstream_context_api",
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/unfollow",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "cguid"
+                ],
+                "source_api": "POST /user/profile/follow",
+                "target_api": "POST /user/profile/unfollow",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relationship": "一致性约束",
+                "risky_form": "取关操作的 cguid 与前序关注操作的 cguid 不一致。",
+                "case_reason": "防止攻击者通过枚举 cguid 进行盲目取关操作。"
+              }
+            ],
+            "risky_parameter_form": "参数值在逻辑关联的操作对中不匹配。",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {},
+            "sequence_status_observation": "状态码未知，参数不一致本身构成了逻辑异常。",
+            "risk_level_adjustment_reason": "参数流转逻辑异常，风险等级由参数关系证据支撑。"
+          },
+          "overall_reason": "关注与取关操作针对了不同的用户 ID，显示出攻击者可能在尝试批量操作或枚举，建议增加参数一致性校验。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "聚类参数已成功捕捉到高频重复和参数不一致的异常模式，无需调整。"
+      }
+    },
+    {
+      "cluster_index": 7,
+      "is_trustworthy": true,
+      "trust_score": 0.95,
+      "business_pattern_name": "登录入口高频重放攻击",
+      "attack_observation_summary": "攻击者使用脚本对登录接口 GET /user/auth/login 进行高频重复请求，所有请求均返回 403 Forbidden，表现出明显的自动化探测或暴力破解行为。",
+      "main_evidence": [
+        "单一 API 'GET /user/auth/login' 在会话中重复出现 20 次",
+        "所有请求响应状态码均为 403 Forbidden",
+        "User-Agent 为 'python-requests/2.32.3'，证实为自动化脚本",
+        "请求携带被隐去的 Cookie，但持续返回 403，疑似使用失效凭证或被封禁账号进行探测"
+      ],
+      "mixed_member_session_ids": [],
+      "representative_problem": "代表性会话完美展示了脚本对特定接口的持续性攻击模式，且状态码一致反馈了服务端的拦截行为。",
+      "possible_security_scenarios": [
+        {
+          "scenario_id": "C7-S1",
+          "scenario_title": "User-Agent 上下文不一致导致的对象级访问风险",
+          "security_type": "BOLA",
+          "risk_level": "high",
+          "risk_score": 0.9,
+          "risk_type": "parameter_consistency",
+          "risk_example": "攻击者使用脚本在短时间内连续发送 20 个 GET 请求至 /user/auth/login，导致服务器资源占用或触发 WAF 拦截。",
+          "attack_observation": "会话日志显示 GET /user/auth/login 在短时间内被连续调用 20 次，无其他业务逻辑穿插，且 User-Agent 显示为 python-requests。",
+          "attack_point": "API 网关或应用层缺乏有效的请求频率限制或针对自动化脚本的挑战机制。",
+          "attack_method": "高频重复请求，试图耗尽服务器连接资源或进行凭证枚举（尽管本例中被 403 拦截）。",
+          "hit_condition": "同一会话对单一 API 'GET /user/auth/login' 的调用次数 >= 5 次，且时间间隔极短。",
+          "analysis_dimensions": [
+            "顺序分析",
+            "状态码分析",
+            "UA 分析"
+          ],
+          "parameter_consistency_risk": {
+            "risk_level": "medium",
+            "key_parameters_or_objects": [
+              "User-Agent",
+              "Cookie"
+            ],
+            "target_apis": [
+              "GET /user/auth/login"
+            ],
+            "context_apis": [
+              "参数在正常会话中应保持稳定或按业务逻辑变化"
+            ],
+            "normal_parameter_sequence": [
+              "参数在正常会话中应保持稳定或按业务逻辑变化",
+              "GET /user/auth/login"
+            ],
+            "parameter_dependency_relation": "stable_within_target_api",
+            "expected_parameter_source": "same_request_or_business_context",
+            "parameter_occurrences": [
+              {
+                "parameter": "User-Agent",
+                "api": "GET /user/auth/login",
+                "location": "header",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "Cookie",
+                "api": "GET /user/auth/login",
+                "location": "header",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "参数在正常会话中应保持稳定或按业务逻辑变化",
+                "target_api": "GET /user/auth/login",
+                "parameter": "User-Agent",
+                "relation": "stable_within_target_api",
+                "explanation": "User-Agent 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "参数在正常会话中应保持稳定或按业务逻辑变化",
+                "target_api": "GET /user/auth/login",
+                "parameter": "Cookie",
+                "relation": "stable_within_target_api",
+                "explanation": "Cookie 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_risk_cases": [
+              {
+                "case_id": "P1",
+                "parameter_or_parameter_group": [
+                  "User-Agent"
+                ],
+                "source_api": "",
+                "target_api": "GET /user/auth/login",
+                "source_parameter": "",
+                "target_parameter": "User-Agent",
+                "relationship": "稳定性",
+                "risky_form": "自动化脚本特征值 (python-requests)",
+                "case_reason": "User-Agent 暴露了自动化工具特征，结合高频行为可作为恶意脚本识别依据"
+              }
+            ],
+            "risky_parameter_form": "固定自动化脚本头部与无效/被禁 Cookie 的持续重放",
+            "needs_openapi_or_raw_request_confirmation": true
+          },
+          "response_code_evidence": {
+            "cluster_status_distribution": {
+              "403": 80
+            },
+            "sequence_status_observation": "全量 403 响应表明服务端已识别并拒绝了该重复请求，但这并不排除攻击者正在测试不同 Cookie 或试图绕过 WAF 的可能性。",
+            "target_api_status_observation": "GET /user/auth/login 返回 403，符合未授权或被拦截特征。",
+            "risk_level_adjustment_reason": "虽然服务端返回 403 证明攻击未成功突破权限，但攻击意图明显且造成资源浪费，故保持高风险评级。",
+            "precheck_api_status_observation": "无前置 API。"
+          },
+          "overall_reason": "该场景为典型的自动化脚本攻击，通过单一接口的高频重放消耗资源。尽管被服务端拦截（403），但异常行为特征显著，需建立频控规则。",
+          "later_check_hint": "重点检查 parameter_consistency_risk 中的 target_apis、context_apis、parameter_occurrences 和 context_binding，不把重复调用或顺序异常作为本场景主证据。"
+        }
+      ],
+      "suggestion": {
+        "eps_action": "keep",
+        "min_samples_action": "keep",
+        "reason": "聚类成功捕获了高频重放攻击模式，参数配置合理。"
+      }
+    }
+  ],
+  "failed_reviews": []
+}

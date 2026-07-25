@@ -1,0 +1,2178 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 和 current_rule_replay 分析该规则为什么产生误报、漏报或 F1 偏低。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "有 labeled_scoring_available 时，候选修改必须尽量提升该规则 F1，不能只减少误报却明显牺牲召回。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围，同时保持攻击覆盖。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [],
+  "evidence": {
+    "objective": "逐规则优化检测效果。有验证标签时以该规则 F1 提升为主，兼顾降低误报；无异常标签时才回退为仅降低正常样本误报。",
+    "target_fol_id": "FOL-C12-S1",
+    "optimization_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1,
+      "target_rule_min_f1": 0.7
+    },
+    "current_rule_replay": {
+      "session_count": 2697,
+      "normal_session_count": 2428,
+      "anomalous_session_count": 269,
+      "labeled_scoring_available": true,
+      "true_positive_session_count": 62,
+      "false_positive_session_count": 514,
+      "false_negative_session_count": 207,
+      "false_positive_hit_count": 609,
+      "false_positive_rate": 0.2116968698517298,
+      "precision": 0.1076388888888889,
+      "recall": 0.23048327137546468,
+      "f1": 0.1467455621301775
+    },
+    "rule": {
+      "fol_id": "FOL-C12-S1",
+      "scenario_title": "用户关注接口 cguid 参数篡改导致的对象级越权风险",
+      "security_type": "BOLA",
+      "risk_level": "medium",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /user/profile/follow"
+            ],
+            "context_api_scope": [
+              "GET /user/profile",
+              "GET /user/profile/about",
+              "GET /space/space",
+              "GET /space/space/about",
+              "GET /space/manage",
+              "GET /space/manage/member"
+            ],
+            "normal_parameter_sequence": [
+              "GET /user/profile?cguid=xxx -> POST /user/profile/follow?cguid=xxx",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /user/profile/about",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "GET /user/account/change-email",
+              "GET /user/profile",
+              "GET /notification/list",
+              "POST /comment/comment/show",
+              "POST /like/like/unlike",
+              "POST /user/profile/unfollow"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /user/profile",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /user/profile",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "正常流程中，用户先访问特定用户资料(获取cguid)，再执行关注动作，目标参数应来源于此上下文"
+              }
+            ],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "cguid 参数值不属于当前会话上下文（如未出现在搜索结果、资料详情中）",
+            "context_api_scope_symbols": [
+              "C1",
+              "C2"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow"
+              ],
+              "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+            },
+            "min_distinct_target_values": 3
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /user/profile/follow"
+            ],
+            "context_api_scope": [
+              "GET /user/profile",
+              "GET /user/profile/about",
+              "GET /space/space",
+              "GET /space/space/about",
+              "GET /space/manage",
+              "GET /space/manage/member"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow"
+              ],
+              "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /user/profile"
+                },
+                {
+                  "symbol": "C2",
+                  "value": "GET /user/profile/about"
+                },
+                {
+                  "symbol": "C3",
+                  "value": "GET /space/space"
+                },
+                {
+                  "symbol": "C4",
+                  "value": "GET /space/space/about"
+                },
+                {
+                  "symbol": "C5",
+                  "value": "GET /space/manage"
+                },
+                {
+                  "symbol": "C6",
+                  "value": "GET /space/manage/member"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /user/profile/follow"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_7",
+        "session_label": "normal",
+        "session_is_anomalous": false,
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                "98d4af46-8fea-42ad-9f6d-25dda00a8474"
+              ],
+              "target_apis": [
+                "POST /user/profile/follow"
+              ],
+              "context_apis": [
+                "GET /user/profile",
+                "GET /user/profile/about",
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                18
+              ],
+              "context_steps": [
+                11,
+                12,
+                13,
+                14
+              ],
+              "target_examples": [
+                {
+                  "step": 18,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /user/profile/about",
+                  "request": "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "13499915-d1c9-4abe-894d-9ee6a9dd9b9e"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /user/profile",
+                  "request": "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 18,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                  "request": "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "request": "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                ],
+                "context_values": [
+                  "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                  "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                ],
+                "unexpected_target_values": [
+                  "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 18,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                    "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                  },
+                  {
+                    "step": 12,
+                    "api": "GET /space/space/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                  },
+                  {
+                    "step": 13,
+                    "api": "GET /user/profile/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                    "request": "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e"
+                  },
+                  {
+                    "step": 14,
+                    "api": "GET /user/profile",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                    "request": "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 18,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 11,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+              "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+            },
+            {
+              "step": 12,
+              "api": "GET /space/space/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+            },
+            {
+              "step": 13,
+              "api": "GET /user/profile/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+              "request": "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e"
+            },
+            {
+              "step": 14,
+              "api": "GET /user/profile",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+              "request": "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 18,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                "98d4af46-8fea-42ad-9f6d-25dda00a8474"
+              ],
+              "unexpected_target_values": [
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 18,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+                  "request": "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "request": "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /user/profile/about",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /space/space/follow",
+          "POST /user/profile/follow",
+          "POST /like/like/like",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs?_pjax=%23layout-content&_=1737029581146",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/space/about?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /user/profile/about?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "GET /user/profile?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /space/space/follow?cguid=13499915-d1c9-4abe-894d-9ee6a9dd9b9e",
+          "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=10",
+          "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"message\":\"dbfcg\",\"containerGuid\":\"e782abba-254b-4d69-ae2c-6417c56768a3\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+        ]
+      },
+      {
+        "session_id": "combined_22",
+        "session_label": "normal",
+        "session_is_anomalous": false,
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+              ],
+              "target_apis": [
+                "POST /user/profile/follow"
+              ],
+              "context_apis": [
+                "GET /user/profile",
+                "GET /user/profile/about",
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                12
+              ],
+              "context_steps": [
+                2,
+                3,
+                8
+              ],
+              "target_examples": [
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "request": "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/profile",
+                  "request": "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "request": "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48"
+                ],
+                "context_values": [
+                  "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                ],
+                "unexpected_target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 12,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629"
+                  },
+                  {
+                    "step": 3,
+                    "api": "GET /user/profile/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                    "request": "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                  },
+                  {
+                    "step": 8,
+                    "api": "GET /user/profile",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "request": "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 12,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629"
+            },
+            {
+              "step": 3,
+              "api": "GET /user/profile/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+              "request": "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/profile",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "request": "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 12,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48"
+              ],
+              "context_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+              ],
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "request": "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /space/space/follow",
+          "POST /user/profile/follow",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1737030678629",
+          "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882&_pjax=%23layout-content&_=1737029756385",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /space/space/follow?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=7",
+          "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=11"
+        ]
+      },
+      {
+        "session_id": "combined_25",
+        "session_label": "normal",
+        "session_is_anomalous": false,
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                "d6255cac-01c8-4dc9-aea9-547c358feb53"
+              ],
+              "target_apis": [
+                "POST /user/profile/follow"
+              ],
+              "context_apis": [
+                "GET /user/profile",
+                "GET /user/profile/about",
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                11
+              ],
+              "context_steps": [
+                2,
+                5,
+                6
+              ],
+              "target_examples": [
+                {
+                  "step": 11,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 2,
+                  "api": "GET /user/profile/about",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                },
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "request": "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 11,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                },
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [
+                  "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "d6255cac-01c8-4dc9-aea9-547c358feb53"
+                ],
+                "unexpected_target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /user/profile/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                    "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                  },
+                  {
+                    "step": 5,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                    "request": "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                  },
+                  {
+                    "step": 6,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                    "request": "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 11,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/profile/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+              "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+            },
+            {
+              "step": 5,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+              "request": "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+            },
+            {
+              "step": 6,
+              "api": "GET /space/manage",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+              "request": "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 11,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                "d6255cac-01c8-4dc9-aea9-547c358feb53"
+              ],
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 11,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                },
+                {
+                  "step": 6,
+                  "api": "GET /space/manage",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "POST /space/space/follow",
+          "GET /space/space",
+          "GET /space/manage",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /user/profile/follow",
+          "POST /comment/comment/show"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /user/account/edit",
+          "POST /space/space/follow?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=19",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=13"
+        ]
+      },
+      {
+        "session_id": "combined_26",
+        "session_label": "normal",
+        "session_is_anomalous": false,
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "target_apis": [
+                "POST /user/profile/follow"
+              ],
+              "context_apis": [
+                "GET /user/profile",
+                "GET /user/profile/about",
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                14
+              ],
+              "context_steps": [
+                2,
+                3,
+                10,
+                11
+              ],
+              "target_examples": [
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /user/profile",
+                  "request": "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space/about",
+                  "request": "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "request": "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [
+                  "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                ],
+                "unexpected_target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 14,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  },
+                  {
+                    "step": 3,
+                    "api": "GET /user/profile/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                    "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                  },
+                  {
+                    "step": 10,
+                    "api": "GET /user/profile",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                    "request": "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                  },
+                  {
+                    "step": 11,
+                    "api": "GET /space/space/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                    "request": "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 14,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            },
+            {
+              "step": 3,
+              "api": "GET /user/profile/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+              "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+            },
+            {
+              "step": 10,
+              "api": "GET /user/profile",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+              "request": "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+            },
+            {
+              "step": 11,
+              "api": "GET /space/space/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+              "request": "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 14,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                },
+                {
+                  "step": 3,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d6255cac-01c8-4dc9-aea9-547c358feb53",
+                  "request": "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+                  "request": "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "POST /space/space/follow",
+          "POST /like/like/like",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile",
+          "GET /space/space/about",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "POST /user/profile/follow",
+          "POST /post/post/post",
+          "POST /comment/comment/show",
+          "POST /like/like/unlike"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /user/account/edit",
+          "POST /space/space/follow?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=19",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/profile?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /space/space/about?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /post/post/post?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=11",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=22"
+        ]
+      },
+      {
+        "session_id": "combined_28",
+        "session_label": "normal",
+        "session_is_anomalous": false,
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户关注接口 cguid 参数篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "45446c8f-2181-412f-ba18-20aa01e356fc",
+                "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                "eac0d71a-1627-45f1-a7ae-1602ec86c047"
+              ],
+              "target_apis": [
+                "POST /user/profile/follow"
+              ],
+              "context_apis": [
+                "GET /user/profile",
+                "GET /user/profile/about",
+                "GET /space/space",
+                "GET /space/space/about",
+                "GET /space/manage",
+                "GET /space/manage/member"
+              ],
+              "target_steps": [
+                13
+              ],
+              "context_steps": [
+                2,
+                4,
+                12,
+                18
+              ],
+              "target_examples": [
+                {
+                  "step": 13,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /user/profile/about",
+                  "request": "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/profile",
+                  "request": "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "eac0d71a-1627-45f1-a7ae-1602ec86c047"
+                },
+                {
+                  "step": 18,
+                  "api": "GET /space/space/about",
+                  "request": "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 13,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "request": "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "request": "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "eac0d71a-1627-45f1-a7ae-1602ec86c047",
+                  "request": "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047"
+                },
+                {
+                  "step": 18,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "request": "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [
+                  "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "eac0d71a-1627-45f1-a7ae-1602ec86c047"
+                ],
+                "unexpected_target_values": [
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 13,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                    "request": "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                  },
+                  {
+                    "step": 4,
+                    "api": "GET /user/profile/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                    "request": "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                  },
+                  {
+                    "step": 12,
+                    "api": "GET /user/profile",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "eac0d71a-1627-45f1-a7ae-1602ec86c047",
+                    "request": "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047"
+                  },
+                  {
+                    "step": 18,
+                    "api": "GET /space/space/about",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                    "request": "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 13,
+                    "api": "POST /user/profile/follow",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "状态码分析\n79\n1\n2\n代表序列全为 200，表明参数一致性正常的请求被成功处理\nPOST /user/profile/follow 返回 200，若攻击者篡改 cguid 后仍返回 200 则风险成立\n正常序列全为 2xx，降低了误报可能；若异常参数仍返回 2xx 则确认漏洞存在"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+              "request": "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+            },
+            {
+              "step": 4,
+              "api": "GET /user/profile/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+              "request": "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+            },
+            {
+              "step": 12,
+              "api": "GET /user/profile",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "eac0d71a-1627-45f1-a7ae-1602ec86c047",
+              "request": "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047"
+            },
+            {
+              "step": 18,
+              "api": "GET /space/space/about",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+              "request": "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 13,
+              "api": "POST /user/profile/follow",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [
+                "45446c8f-2181-412f-ba18-20aa01e356fc",
+                "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                "eac0d71a-1627-45f1-a7ae-1602ec86c047"
+              ],
+              "unexpected_target_values": [
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 13,
+                  "api": "POST /user/profile/follow",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "45446c8f-2181-412f-ba18-20aa01e356fc",
+                  "request": "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /user/profile/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "98d4af46-8fea-42ad-9f6d-25dda00a8474",
+                  "request": "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/profile",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "eac0d71a-1627-45f1-a7ae-1602ec86c047",
+                  "request": "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047"
+                },
+                {
+                  "step": 18,
+                  "api": "GET /space/space/about",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "request": "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/account/edit",
+          "GET /user/profile/about",
+          "POST /space/space/follow",
+          "GET /notification/list",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/browse/search-json",
+          "POST /comment/comment/show",
+          "POST /post/post/edit",
+          "GET /user/profile",
+          "POST /user/profile/follow",
+          "POST /space/membership/invite",
+          "POST /like/like/unlike",
+          "GET /user/account/change-email",
+          "POST /user/profile/unfollow",
+          "GET /space/space/about"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /user/account/edit",
+          "GET /user/profile/about?cguid=98d4af46-8fea-42ad-9f6d-25dda00a8474",
+          "POST /space/space/follow?cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /notification/list?from=0",
+          "POST /post/post/post?cguid=c239fe95-c444-41e0-8090-50b27c1455f5 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=13",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost",
+          "POST /post/post/edit?id=24 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}",
+          "GET /user/profile?cguid=eac0d71a-1627-45f1-a7ae-1602ec86c047",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /space/membership/invite?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c BODY {\"_csrf\":\"wigEIpZi2AN4b9AxkNo_87iBtv2PiSbn45CYQMNpzTz6QEhI5xW5TxYgmEn0l0qyi_jZsczRaLPRqO0ppyCPcA==\",\"InviteForm[invite]\":null,\"InviteForm[invite][]\":\"9ffc5154-a1d1-4c99-af07-fb9b825e9a85\"}",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=22",
+          "GET /user/account/change-email",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /space/space/about?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+        ]
+      }
+    ],
+    "missed_anomalous_sessions": [
+      {
+        "session_id": "combined_2429",
+        "label": "abnormal",
+        "is_anomalous": true,
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /space/browse/search-json",
+          "GET /space/space/about",
+          "POST /space/space/follow",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /comment/comment/show",
+          "GET /admin/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "POST /like/like/unlike",
+          "POST /user/profile/unfollow",
+          "GET /marketplace/purchase"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/profile/about?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /user/account/edit?_pjax=%23layout-content&_=1737030567817",
+          "GET /user/account/edit-settings",
+          "GET /user/profile?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /notification/list?from=0",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "GET /space/space/about?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "POST /space/space/follow?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=10",
+          "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=11",
+          "GET /admin/space",
+          "GET /space/manage?cguid=d6255cac-01c8-4dc9-aea9-547c358feb53",
+          "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41&_pjax=%23layout-content&_=1737030952560",
+          "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=10",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /marketplace/purchase"
+        ]
+      },
+      {
+        "session_id": "combined_2435",
+        "label": "abnormal",
+        "is_anomalous": true,
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about",
+          "GET /admin/space",
+          "GET /space/manage",
+          "GET /user/account/edit-settings",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /space/manage/security",
+          "GET /admin/information/database",
+          "POST /space/space/follow",
+          "GET /space/manage/member",
+          "GET /notification/list",
+          "POST /post/post/edit",
+          "GET /user/account/edit",
+          "GET /space/manage/member/change-owner",
+          "GET /space/browse/search-json",
+          "GET /admin/information/background-jobs",
+          "POST /like/like/like",
+          "GET /admin/user-profile"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /admin/space",
+          "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+          "GET /user/account/edit-settings",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /admin/information/database",
+          "POST /space/space/follow?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "GET /space/manage/member?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "GET /notification/list?from=0",
+          "POST /post/post/edit?id=24 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}",
+          "GET /user/account/edit",
+          "GET /space/manage/member/change-owner?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "GET /admin/information/background-jobs",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=42",
+          "GET /admin/user-profile"
+        ]
+      },
+      {
+        "session_id": "combined_2440",
+        "label": "abnormal",
+        "is_anomalous": true,
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /admin/space",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /user/profile/about",
+          "GET /notification/list",
+          "GET /admin/module/list",
+          "GET /space/browse/search-json",
+          "GET /space/manage/security",
+          "POST /space/space/follow",
+          "GET /space/manage/member",
+          "POST /post/post/post",
+          "GET /admin/user-profile",
+          "GET /space/manage/module",
+          "POST /post/post/edit",
+          "GET /marketplace/purchase",
+          "POST /comment/comment/show",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "POST /space/membership/invite"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /admin/space",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /user/profile/about?cguid=96eb3a6a-fd83-4c8e-b37e-5aa84c57a2aa",
+          "GET /notification/list?from=0",
+          "GET /admin/module/list",
+          "GET /space/browse/search-json?keyword=New%20Grp",
+          "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "POST /space/space/follow?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "GET /space/manage/member?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "POST /post/post/post?cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "GET /admin/user-profile",
+          "GET /space/manage/module?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "POST /post/post/edit?id=24&cguid=e782abba-254b-4d69-ae2c-6417c56768a3 BODY {\"_csrf\":\"wigEIpZi2AN4b9AxkNo_87iBtv2PiSbn45CYQMNpzTz6QEhI5xW5TxYgmEn0l0qyi_jZsczRaLPRqO0ppyCPcA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}",
+          "GET /marketplace/purchase",
+          "POST /comment/comment/show?objectModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&objectId=13",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "POST /space/membership/invite?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035 BODY {\"_csrf\":\"wigEIpZi2AN4b9AxkNo_87iBtv2PiSbn45CYQMNpzTz6QEhI5xW5TxYgmEn0l0qyi_jZsczRaLPRqO0ppyCPcA==\",\"InviteForm[invite]\":null,\"InviteForm[invite][]\":\"9ffc5154-a1d1-4c99-af07-fb9b825e9a85\"}"
+        ]
+      },
+      {
+        "session_id": "combined_2444",
+        "label": "abnormal",
+        "is_anomalous": true,
+        "api_sequence": [
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login"
+        ],
+        "raw_sequence": [
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login"
+        ]
+      },
+      {
+        "session_id": "combined_2445",
+        "label": "abnormal",
+        "is_anomalous": true,
+        "api_sequence": [
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login"
+        ],
+        "raw_sequence": [
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login",
+          "GET /user/auth/login"
+        ]
+      }
+    ]
+  }
+}

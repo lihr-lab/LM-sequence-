@@ -1,0 +1,3813 @@
+{
+  "site_id": "combined",
+  "review_file": "D:\\browser\\test\\artifacts\\combined_flat\\abnormal\\process_mining\\llm_abnormal_rule_inference\\site_combined_abnormal_rule_inference.json",
+  "api_context_source": "parameter_profile",
+  "api_context_file": "artifacts\\combined_flat\\abnormal\\parameter_profiles\\site_combined_parameter_profile.json",
+  "parameter_profile_file": "artifacts\\combined_flat\\abnormal\\parameter_profiles\\site_combined_parameter_profile.json",
+  "openapi_file": "",
+  "boundary_file": "",
+  "authorization_context": {
+    "mode": "sequence_risk_rating",
+    "project_boundary_available": false,
+    "note": "项目权限表可作为参数一致性风险的辅助依据，但当前公式只输出序列顺序风险与参数合理性风险评级。"
+  },
+  "expression_count": 13,
+  "generated_expression_count": 13,
+  "skipped_expression_count": 0,
+  "predicate_library": [
+    {
+      "predicate": "Occurs(s,A)",
+      "description": "活动 A 出现在会话 s 中"
+    },
+    {
+      "predicate": "Before(s,A_before,A_after)",
+      "description": "在会话 s 中，活动 A_before 早于 A_after"
+    },
+    {
+      "predicate": "RequiredBefore(A_required,A_target)",
+      "description": "正常业务中 A_required 通常应出现在 A_target 之前"
+    },
+    {
+      "predicate": "RiskyAdjacentOrder(s,A_before,A_after)",
+      "description": "会话 s 中出现可疑的相邻活动顺序"
+    },
+    {
+      "predicate": "CountInSession(s,A)",
+      "description": "活动 A 在会话 s 中出现的次数"
+    },
+    {
+      "predicate": "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+      "description": "参数一致性检查的上下文 API、目标 API、关键参数和依赖关系"
+    },
+    {
+      "predicate": "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+      "description": "关键参数出现在目标 API 中，或者需要从响应、搜索条件、OpenAPI 文档中推断"
+    },
+    {
+      "predicate": "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+      "description": "目标 API 参数与上游上下文、同一对象或同一会话来源保持一致"
+    },
+    {
+      "predicate": "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+      "description": "序列顺序风险评级结果"
+    },
+    {
+      "predicate": "RatedParameterRisk(s,security_category,risk_level,title)",
+      "description": "参数一致性风险评级结果"
+    },
+    {
+      "predicate": "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)",
+      "description": "序列顺序和参数一致性共同成立时的组合风险评级结果"
+    }
+  ],
+  "expressions": [
+    {
+      "fol_id": "FOL-C1-S1",
+      "status": "generated",
+      "source": {
+        "cluster_index": 1,
+        "scenario_id": "C1-S1",
+        "business_pattern_name": "帖子编辑与发布接口的参数一致性破坏与越权尝试",
+        "scenario_title": "帖子编辑接口对象级越权（BOLA）- 归属上下文切换",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "high",
+        "risk_score": 0.9,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "攻击者通过固定对象ID并切换空间ID的方式探测编辑接口的越权漏洞，参数逻辑异常清晰。",
+        "parameter_target_apis": [
+          "POST /post/post/edit"
+        ],
+        "parameter_context_apis": [
+          "GET /space/space"
+        ],
+        "parameter_normal_sequence": [
+          "cguid 应稳定且与 id 的归属一致",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "POST /like/like/like",
+          "POST /like/like/unlike"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "id",
+            "api": "POST /post/post/edit",
+            "location": "query",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "cguid",
+            "api": "POST /post/post/edit",
+            "location": "query",
+            "role": "context_parameter"
+          }
+        ],
+        "parameter_context_binding": [
+          {
+            "source_api": "GET /space/space",
+            "target_api": "POST /post/post/edit",
+            "parameter": "cguid",
+            "source_parameter": "cguid",
+            "target_parameter": "cguid",
+            "relation": "同一对象",
+            "explanation": "编辑操作应限定在通过 /space/space 确认的当前空间上下文中"
+          }
+        ],
+        "parameter_dependency_relation": "bound_to_upstream_context",
+        "expected_parameter_source": "upstream_context_api",
+        "parameter_risk": "目标对象ID与上下文ID不匹配或多值切换"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /space/space",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "commentId",
+            "contentId",
+            "tour",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type"
+          ],
+          "object_params": [
+            "cguid",
+            "commentId",
+            "contentId",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/space/about",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/spaces",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /like/like/like",
+          "params": [
+            "contentId",
+            "contentModel",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "HUMHUB-VIEW-CONTEXT",
+            "Host",
+            "Origin",
+            "Referer"
+          ],
+          "object_params": [
+            "contentId",
+            "contentModel",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /like/like/unlike",
+          "params": [
+            "contentId",
+            "contentModel",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "Host",
+            "Origin",
+            "Referer",
+            "User-Agent"
+          ],
+          "object_params": [
+            "contentId",
+            "contentModel",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /post/post/edit"
+            ],
+            "context_api_scope": [
+              "GET /space/space"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 应稳定且与 id 的归属一致",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /post/post/edit",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "id",
+                "api": "POST /post/post/edit",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /post/post/edit",
+                "location": "query",
+                "role": "context_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/edit",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "编辑操作应限定在通过 /space/space 确认的当前空间上下文中"
+              }
+            ],
+            "dropped_unverified_parameters": [
+              "id"
+            ],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "目标对象ID与上下文ID不匹配或多值切换",
+            "context_api_scope_symbols": [
+              "C1"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /post/post/edit"
+              ],
+              "status_code_analysis": "3222\n代表序列全为 status_code 0，虽无法确认HTTP响应，但参数行为本身已构成高风险证据。\n状态码缺失不影响对参数异常逻辑的判定，风险等级维持 High。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /post/post/edit"
+            ],
+            "context_api_scope": [
+              "GET /space/space"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /post/post/edit"
+              ],
+              "status_code_analysis": "3222\n代表序列全为 status_code 0，虽无法确认HTTP响应，但参数行为本身已构成高风险证据。\n状态码缺失不影响对参数异常逻辑的判定，风险等级维持 High。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /space/space"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /post/post/edit"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子编辑接口对象级越权（BOLA）- 归属上下文切换\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C1-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 1,
+        "scenario_id": "C1-S2",
+        "business_pattern_name": "帖子编辑与发布接口的参数一致性破坏与越权尝试",
+        "scenario_title": "帖子发布接口参数注入（BOLA）- 容器归属篡改",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "high",
+        "risk_score": 0.85,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "发布接口存在明显的请求内部参数不一致，攻击者利用此缺陷尝试跨空间发布内容。",
+        "parameter_target_apis": [
+          "POST /post/post/post"
+        ],
+        "parameter_context_apis": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about"
+        ],
+        "parameter_normal_sequence": [
+          "Query cguid 应与 Body containerGuid 一致",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "POST /like/like/like",
+          "POST /like/like/unlike"
+        ],
+        "parameter_objects": [
+          "cguid",
+          "containerGuid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "POST /post/post/post",
+            "location": "query",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "containerGuid",
+            "api": "POST /post/post/post",
+            "location": "body",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [
+          {
+            "source_api": "GET /space/space",
+            "target_api": "POST /post/post/post",
+            "parameter": "cguid",
+            "relation": "stable_within_target_api",
+            "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。",
+            "source_parameter": "cguid",
+            "target_parameter": "cguid"
+          },
+          {
+            "source_api": "GET /space/space/about",
+            "target_api": "POST /post/post/post",
+            "parameter": "cguid",
+            "relation": "stable_within_target_api",
+            "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。",
+            "source_parameter": "cguid",
+            "target_parameter": "cguid"
+          }
+        ],
+        "parameter_dependency_relation": "stable_within_target_api",
+        "expected_parameter_source": "same_request_or_business_context",
+        "parameter_risk": "Query 与 Body 参数不一致"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /space/space",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "commentId",
+            "contentId",
+            "tour",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type"
+          ],
+          "object_params": [
+            "cguid",
+            "commentId",
+            "contentId",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/space/about",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/spaces",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /like/like/like",
+          "params": [
+            "contentId",
+            "contentModel",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "HUMHUB-VIEW-CONTEXT",
+            "Host",
+            "Origin",
+            "Referer"
+          ],
+          "object_params": [
+            "contentId",
+            "contentModel",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /like/like/unlike",
+          "params": [
+            "contentId",
+            "contentModel",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "Host",
+            "Origin",
+            "Referer",
+            "User-Agent"
+          ],
+          "object_params": [
+            "contentId",
+            "contentModel",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about"
+            ],
+            "normal_parameter_sequence": [
+              "Query cguid 应与 Body containerGuid 一致",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about",
+              "POST /post/post/post",
+              "POST /post/post/edit",
+              "POST /like/like/like",
+              "POST /like/like/unlike"
+            ],
+            "parameters": [
+              "cguid",
+              "containerGuid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /post/post/post",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "containerGuid",
+                "api": "POST /post/post/post",
+                "location": "body",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid"
+              },
+              {
+                "source_api": "GET /space/space/about",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid"
+              }
+            ],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "POST /post/post/post",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /space/space/about",
+                "target_api": "POST /post/post/post",
+                "parameter": "containerGuid",
+                "relation": "stable_within_target_api",
+                "explanation": "containerGuid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "same_request_or_business_context",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "Query 与 Body 参数不一致",
+            "context_api_scope_symbols": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1",
+              "P2"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "3222\n状态码缺失，但参数冲突本身逻辑明确。\n参数证据确凿，无需状态码佐证。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid",
+              "containerGuid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /post/post/post"
+            ],
+            "context_api_scope": [
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/space/about"
+            ],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "same_request_or_business_context",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /post/post/post"
+              ],
+              "status_code_analysis": "3222\n状态码缺失，但参数冲突本身逻辑明确。\n参数证据确凿，无需状态码佐证。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /space/spaces"
+                },
+                {
+                  "symbol": "C2",
+                  "value": "GET /space/space"
+                },
+                {
+                  "symbol": "C3",
+                  "value": "GET /space/space/about"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /post/post/post"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                },
+                {
+                  "symbol": "P2",
+                  "value": "containerGuid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1,P2}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1,P2},2) → RatedParameterRisk(s,\"BOLA\",\"high\",\"帖子发布接口参数注入（BOLA）- 容器归属篡改\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C2-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 2,
+        "scenario_id": "C2-S2",
+        "business_pattern_name": "跨租户枚举与管理接口未授权扫描",
+        "scenario_title": "邀请接口参数 cguid 跨对象枚举",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "medium",
+        "risk_score": 0.75,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "同一会话中 cguid 参数发生切换，且目标接口未验证用户对该对象的归属权，存在对象级越权风险。",
+        "parameter_target_apis": [
+          "GET /space/membership/invite"
+        ],
+        "parameter_context_apis": [
+          "GET /space/space"
+        ],
+        "parameter_normal_sequence": [
+          "cguid 应保持单一值，或仅限于用户所属空间列表。",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/membership/invite",
+          "POST /space/membership/invite",
+          "GET /notification/list",
+          "GET /marketplace/update",
+          "GET /admin/module/list"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "GET /space/space",
+            "location": "query",
+            "role": "context_source"
+          },
+          {
+            "parameter": "cguid",
+            "api": "GET /space/membership/invite",
+            "location": "query",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [
+          {
+            "source_api": "GET /space/space",
+            "target_api": "GET /space/membership/invite",
+            "parameter": "cguid",
+            "source_parameter": "cguid",
+            "target_parameter": "cguid",
+            "relation": "同一对象",
+            "explanation": "邀请查询接口的 cguid 应来源于当前进入的空间上下文。"
+          }
+        ],
+        "parameter_dependency_relation": "bound_to_upstream_context",
+        "expected_parameter_source": "upstream_context_api",
+        "parameter_risk": "参数值在会话内发生非一致性切换"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /admin/module/list",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /marketplace/update",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /notification/list",
+          "params": [
+            "from",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token",
+            "X-Requested-With",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/membership/invite",
+          "params": [
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Referer",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "cguid",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/space",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "commentId",
+            "contentId",
+            "tour",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type"
+          ],
+          "object_params": [
+            "cguid",
+            "commentId",
+            "contentId",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "GET /space/membership/invite"
+            ],
+            "context_api_scope": [
+              "GET /space/space"
+            ],
+            "normal_parameter_sequence": [
+              "cguid 应保持单一值，或仅限于用户所属空间列表。",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /space/membership/invite",
+              "POST /space/membership/invite",
+              "GET /notification/list",
+              "GET /marketplace/update",
+              "GET /admin/module/list"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "GET /space/membership/invite",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "GET /space/membership/invite",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "邀请查询接口的 cguid 应来源于当前进入的空间上下文。"
+              }
+            ],
+            "dropped_unverified_parameters": [
+              "UUID"
+            ],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "参数值在会话内发生非一致性切换",
+            "context_api_scope_symbols": [
+              "C1"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "GET /space/membership/invite"
+              ],
+              "status_code_analysis": "参数切换后请求继续执行，未立即中断，推测越权尝试可能成功或未触发严格校验。\n接口持续被调用，无异常状态码返回。\n缺乏403/404证据，无法确认越权是否成功，但参数行为已具备攻击特征。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "GET /space/membership/invite"
+            ],
+            "context_api_scope": [
+              "GET /space/space"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "GET /space/membership/invite"
+              ],
+              "status_code_analysis": "参数切换后请求继续执行，未立即中断，推测越权尝试可能成功或未触发严格校验。\n接口持续被调用，无异常状态码返回。\n缺乏403/404证据，无法确认越权是否成功，但参数行为已具备攻击特征。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /space/space"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "GET /space/membership/invite"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") → RatedParameterRisk(s,\"BOLA\",\"medium\",\"邀请接口参数 cguid 跨对象枚举\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C2-S3",
+      "status": "generated",
+      "source": {
+        "cluster_index": 2,
+        "scenario_id": "C2-S3",
+        "business_pattern_name": "跨租户枚举与管理接口未授权扫描",
+        "scenario_title": "更新与管理接口高频重复调用",
+        "security_type": "RESOURCE_CONSUMPTION",
+        "raw_security_type": "RESOURCE_CONSUMPTION",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "RESOURCE_CONSUMPTION",
+        "risk_level": "medium",
+        "risk_score": 0.7,
+        "risk_type": "sequence_order",
+        "normal_sequence": [
+          "GET /marketplace/update",
+          "GET /admin/module/list"
+        ],
+        "possible_violation_sequence": [
+          "GET /marketplace/update",
+          "GET /marketplace/update",
+          "GET /marketplace/update",
+          "GET /admin/module/list",
+          "GET /admin/module/list"
+        ],
+        "violated_order_constraint": "接口被非必要的连续高频重复调用。",
+        "overall_reason": "短时间内对特定接口的密集重复调用，缺乏频率限制，构成资源消耗风险。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /marketplace/update"
+          },
+          {
+            "symbol": "A2",
+            "label": "GET /admin/module/list"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A1",
+          "A1",
+          "A1",
+          "A2",
+          "A2"
+        ],
+        "possible_violation_chain": [
+          "A1",
+          "A1",
+          "A1",
+          "A2",
+          "A2"
+        ],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "重复步骤冗余。",
+        "violated_order_constraint": "接口被非必要的连续高频重复调用。",
+        "sequence_subtype": "repeated_call",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 0,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A2",
+        "related_apis": [
+          "GET /marketplace/update",
+          "GET /admin/module/list"
+        ]
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /admin/module/list",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /marketplace/update",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "repeated_call",
+            "activity": "A1",
+            "activity_label": "GET /marketplace/update",
+            "threshold": "3",
+            "status_code_constraints": {
+              "server_error_status_classes": [
+                "5xx"
+              ],
+              "target_activity": "A2",
+              "status_code_analysis": "大量重复请求未见状态码异常，表明服务器可能未进行速率限制拦截。\n重复请求持续存在，未触发429或5xx错误。\n缺乏拦截证据提升了资源消耗攻击的实际威胁。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "repeated_call",
+            "required_activity": "",
+            "target_activity": "",
+            "activity": "A1",
+            "threshold": 3,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "server_error_status_classes": [
+                "5xx"
+              ],
+              "target_activity": "A2",
+              "status_code_analysis": "大量重复请求未见状态码异常，表明服务器可能未进行速率限制拦截。\n重复请求持续存在，未触发429或5xx错误。\n缺乏拦截证据提升了资源消耗攻击的实际威胁。"
+            }
+          },
+          "formula": "∀s (CountInSession(s,A1) ≥ 3 ∧ StatusClassIn(s,A2,{\"5xx\"}) → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"更新与管理接口高频重复调用\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C3-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 3,
+        "scenario_id": "C3-S2",
+        "business_pattern_name": "用户关注与账户配置接口高频滥用及参数割裂攻击",
+        "scenario_title": "edit 重复调用资源消耗风险",
+        "security_type": "RESOURCE_CONSUMPTION",
+        "raw_security_type": "RESOURCE_CONSUMPTION",
+        "trust_score": 0.85
+      },
+      "scenario_summary": {
+        "security_type": "RESOURCE_CONSUMPTION",
+        "risk_level": "medium",
+        "risk_score": 0.7,
+        "risk_type": "sequence_order",
+        "normal_sequence": [
+          "GET /user/account/edit",
+          "POST /user/account/edit"
+        ],
+        "possible_violation_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit",
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /user/account/change-username"
+        ],
+        "violated_order_constraint": "页面访问频率约束",
+        "overall_reason": "异常高频的页面访问行为，疑似自动化探测或资源滥用。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /user/account/edit"
+          },
+          {
+            "symbol": "A2",
+            "label": "POST /user/account/edit"
+          },
+          {
+            "symbol": "A3",
+            "label": "GET /user/account/change-username"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A1",
+          "A1",
+          "A1",
+          "A3",
+          "A3"
+        ],
+        "possible_violation_chain": [
+          "A1",
+          "A1",
+          "A1",
+          "A3",
+          "A3"
+        ],
+        "missing_or_reordered_activity": "A2",
+        "missing_or_reordered_label": "POST /user/account/edit",
+        "violated_order_constraint": "页面访问频率约束",
+        "sequence_subtype": "repeated_call",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 0,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A1",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/account/change-username",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /user/account/edit",
+          "params": [],
+          "object_params": [],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "repeated_call",
+            "activity": "A1",
+            "activity_label": "GET /user/account/edit",
+            "threshold": "3",
+            "status_code_constraints": {
+              "status_code_analysis": "908\n状态码缺失，异常行为主要体现在数量级上。\n页面级高频访问风险略低于核心写接口，定级为中。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "repeated_call",
+            "required_activity": "",
+            "target_activity": "",
+            "activity": "A1",
+            "threshold": 3,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "status_code_analysis": "908\n状态码缺失，异常行为主要体现在数量级上。\n页面级高频访问风险略低于核心写接口，定级为中。"
+            }
+          },
+          "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"edit 重复调用资源消耗风险\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C3-S3",
+      "status": "generated",
+      "source": {
+        "cluster_index": 3,
+        "scenario_id": "C3-S3",
+        "business_pattern_name": "用户关注与账户配置接口高频滥用及参数割裂攻击",
+        "scenario_title": "关注操作目标对象不一致异常",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.85
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "medium",
+        "risk_score": 0.6,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "同会话内关注/取消关注对象 ID 不一致，暴露了自动化脚本批量操作或枚举 ID 的特征。",
+        "parameter_target_apis": [
+          "POST /user/profile/unfollow"
+        ],
+        "parameter_context_apis": [
+          "POST /user/profile/follow"
+        ],
+        "parameter_normal_sequence": [
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/follow",
+            "location": "query",
+            "role": "context_source"
+          },
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/unfollow",
+            "location": "query",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [
+          {
+            "source_api": "POST /user/profile/follow",
+            "target_api": "POST /user/profile/unfollow",
+            "parameter": "cguid",
+            "source_parameter": "cguid",
+            "target_parameter": "cguid",
+            "relation": "同一对象",
+            "explanation": "正常业务中，unfollow 的对象通常是之前 follow 的对象，或者存在于用户关注列表中。参数割裂暗示脚本在轮换 ID。"
+          }
+        ],
+        "parameter_dependency_relation": "bound_to_upstream_context",
+        "expected_parameter_source": "upstream_context_api",
+        "parameter_risk": "unfollow 的 cguid 与 follow 的 cguid 不一致"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/account/change-email",
+          "params": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/change-username",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit-settings",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/people",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [
+              "POST /user/profile/follow"
+            ],
+            "normal_parameter_sequence": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow",
+              "GET /user/people",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "GET /user/account/change-email"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "POST /user/profile/follow",
+                "target_api": "POST /user/profile/unfollow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "正常业务中，unfollow 的对象通常是之前 follow 的对象，或者存在于用户关注列表中。参数割裂暗示脚本在轮换 ID。"
+              }
+            ],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "unfollow 的 cguid 与 follow 的 cguid 不一致",
+            "context_api_scope_symbols": [
+              "C1"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "908\n参数割裂行为本身独立于响应码，即使返回错误也表明探测尝试。\n参数一致性风险独立存在。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [
+              "POST /user/profile/follow"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "908\n参数割裂行为本身独立于响应码，即使返回错误也表明探测尝试。\n参数一致性风险独立存在。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "POST /user/profile/follow"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /user/profile/unfollow"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") → RatedParameterRisk(s,\"BOLA\",\"medium\",\"关注操作目标对象不一致异常\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C4-S1",
+      "status": "generated",
+      "source": {
+        "cluster_index": 4,
+        "scenario_id": "C4-S1",
+        "business_pattern_name": "自动化用户关注/取关循环与账户功能探测",
+        "scenario_title": "自动化关注/取关资源消耗",
+        "security_type": "RESOURCE_CONSUMPTION",
+        "raw_security_type": "RESOURCE_CONSUMPTION",
+        "trust_score": 0.92
+      },
+      "scenario_summary": {
+        "security_type": "RESOURCE_CONSUMPTION",
+        "risk_level": "high",
+        "risk_score": 0.9,
+        "risk_type": "sequence_order",
+        "normal_sequence": [
+          "GET /user/people",
+          "POST /user/profile/follow"
+        ],
+        "possible_violation_sequence": [
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow",
+          "GET /user/people",
+          "POST /user/profile/unfollow"
+        ],
+        "violated_order_constraint": "正常业务不应在短时间内对同一对象或多个对象进行反复、交替的 '关注-取关' 操作。",
+        "overall_reason": "检测到针对关注/取关接口的高频逆向循环调用，结合 python-requests UA，确认为自动化资源消耗行为。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /user/people"
+          },
+          {
+            "symbol": "A2",
+            "label": "POST /user/profile/follow"
+          },
+          {
+            "symbol": "A3",
+            "label": "POST /user/profile/unfollow"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A1",
+          "A2",
+          "A3",
+          "A2",
+          "A1",
+          "A3"
+        ],
+        "possible_violation_chain": [
+          "A1",
+          "A2",
+          "A3",
+          "A2",
+          "A1",
+          "A3"
+        ],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "存在高频、循环的 API 调用序列，缺乏合理的业务停顿或页面停留。",
+        "violated_order_constraint": "正常业务不应在短时间内对同一对象或多个对象进行反复、交替的 '关注-取关' 操作。",
+        "sequence_subtype": "repeated_call",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 300,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A3",
+        "related_apis": [
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow"
+        ]
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/people",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /user/profile/follow",
+          "params": [
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "POST /user/profile/unfollow",
+          "params": [
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Content-Length",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Length",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "repeated_call",
+            "activity": "A1",
+            "activity_label": "GET /user/people",
+            "threshold": "2",
+            "status_code_constraints": {
+              "status_code_analysis": "状态码全为 0 (未记录)，但请求结构完整，属于典型的自动化探测特征。\nPOST 请求携带 Content-Length: 0，若成功执行将产生资源消耗。\n无状态码削弱了攻击成功的确定性，但高频请求序列和自动化特征足以判定为高风险异常行为。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "repeated_call",
+            "required_activity": "",
+            "target_activity": "",
+            "activity": "A1",
+            "threshold": 2,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "status_code_analysis": "状态码全为 0 (未记录)，但请求结构完整，属于典型的自动化探测特征。\nPOST 请求携带 Content-Length: 0，若成功执行将产生资源消耗。\n无状态码削弱了攻击成功的确定性，但高频请求序列和自动化特征足以判定为高风险异常行为。"
+            }
+          },
+          "formula": "∀s (CountInSession(s,A1) ≥ 2 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"high\",\"自动化关注/取关资源消耗\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C4-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 4,
+        "scenario_id": "C4-S2",
+        "business_pattern_name": "自动化用户关注/取关循环与账户功能探测",
+        "scenario_title": "用户对象 cguid 跨上下文高频操作 (BOLA/Enumeration)",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.92
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "medium",
+        "risk_score": 0.75,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "检测到对关注接口的 cguid 参数进行高频、多值切换操作，疑似批量操作或枚举，违反参数上下文一致性。",
+        "parameter_target_apis": [
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow"
+        ],
+        "parameter_context_apis": [],
+        "parameter_normal_sequence": [
+          "cguid 应从 GET /user/people 响应中提取，并在随后的 follow/unfollow 操作中保持稳定或逐一对应。",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "GET /user/account/change-email",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "POST /user/profile/unfollow"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/follow",
+            "location": "query",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/unfollow",
+            "location": "query",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [],
+        "parameter_dependency_relation": "stable_within_target_api",
+        "expected_parameter_source": "target_api_observed_values",
+        "parameter_risk": "单会话内 cguid 值不固定，呈现明显的多目标切换特征。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/account/change-email",
+          "params": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/change-username",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit-settings",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/people",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "cguid 应从 GET /user/people 响应中提取，并在随后的 follow/unfollow 操作中保持稳定或逐一对应。",
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "GET /user/account/change-email",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-username",
+              "POST /user/profile/unfollow"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "POST 操作的目标用户 ID 应来源于 GET 搜索结果，防止直接遍历 ID 进行攻击。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "单会话内 cguid 值不固定，呈现明显的多目标切换特征。",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1",
+              "T2"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow",
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "状态码缺失无法判断对象是否存在或权限校验结果，需依赖参数一致性推断。\n若返回 404 则说明对象不存在 (枚举失败)，若返回 200 则越权成功。\n由于无法验证 cguid 是否真正绑定到上下文，定性为 Medium 风险的参数异常。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow",
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "状态码缺失无法判断对象是否存在或权限校验结果，需依赖参数一致性推断。\n若返回 404 则说明对象不存在 (枚举失败)，若返回 200 则越权成功。\n由于无法验证 cguid 是否真正绑定到上下文，定性为 Medium 风险的参数异常。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /user/profile/follow"
+                },
+                {
+                  "symbol": "T2",
+                  "value": "POST /user/profile/unfollow"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"用户对象 cguid 跨上下文高频操作 (BOLA/Enumeration)\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C5-S1",
+      "status": "generated",
+      "source": {
+        "cluster_index": 5,
+        "scenario_id": "C5-S1",
+        "business_pattern_name": "普通用户上下文遍历管理接口与空间对象枚举攻击",
+        "scenario_title": "dashboard 业务顺序约束绕过风险",
+        "security_type": "AUTH_BYPASS",
+        "raw_security_type": "AUTH_BYPASS",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "AUTH_BYPASS",
+        "risk_level": "high",
+        "risk_score": 0.9,
+        "risk_type": "sequence_order",
+        "normal_sequence": [
+          "GET /admin/login",
+          "GET /admin/dashboard"
+        ],
+        "possible_violation_sequence": [
+          "GET /user/people",
+          "GET /admin/module/list"
+        ],
+        "violated_order_constraint": "访问 Admin 功能接口前缺失管理员身份认证或权限提升步骤。",
+        "overall_reason": "普通用户上下文直接访问 /admin/module/list 管理接口，严重违反最小权限原则，构成 BFLA 风险。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /admin/login"
+          },
+          {
+            "symbol": "A2",
+            "label": "GET /admin/dashboard"
+          },
+          {
+            "symbol": "A3",
+            "label": "GET /user/people"
+          },
+          {
+            "symbol": "A4",
+            "label": "GET /admin/module/list"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A3",
+          "A4"
+        ],
+        "possible_violation_chain": [
+          "A3",
+          "A4"
+        ],
+        "missing_or_reordered_activity": "A1",
+        "missing_or_reordered_label": "GET /admin/login",
+        "violated_order_constraint": "访问 Admin 功能接口前缺失管理员身份认证或权限提升步骤。",
+        "sequence_subtype": "authorization_precheck",
+        "authorization_precheck": {
+          "precheck_required": true,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 300,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A3",
+        "related_apis": [
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /admin/module/list"
+        ]
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /admin/dashboard",
+          "params": [],
+          "object_params": [],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /admin/login",
+          "params": [],
+          "object_params": [],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /admin/module/list",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/people",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "missing_or_reordered_step",
+            "required_activity": "A1",
+            "required_activity_label": "GET /admin/login",
+            "target_activity": "A3",
+            "target_activity_label": "GET /user/people",
+            "sequence_subtype": "authorization_precheck",
+            "authorization_precheck": {
+              "precheck_required": true,
+              "required_response_keywords": [
+                "token",
+                "session",
+                "permission",
+                "permissions",
+                "access",
+                "allowed",
+                "role",
+                "roles"
+              ],
+              "max_interval_seconds": 300,
+              "browser_context_required": false,
+              "precheck_activity": "A1",
+              "precheck_activity_label": "GET /admin/login",
+              "target_activity": "A3",
+              "target_activity_label": "GET /user/people"
+            },
+            "status_code_constraints": {
+              "precheck_activity": "A1",
+              "precheck_status_codes": [
+                "401",
+                "403"
+              ],
+              "status_code_analysis": "441\n当前日志缺失状态码，无法判断服务端是否拦截，但请求本身构成攻击尝试。\n状态码缺失导致无法确认攻击是否成功，但基于访问行为确认风险存在。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "missing_or_reordered_step",
+            "required_activity": "A1",
+            "target_activity": "A3",
+            "activity": "",
+            "threshold": 2,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "sequence_subtype": "authorization_precheck",
+            "authorization_precheck": {
+              "precheck_required": true,
+              "required_response_keywords": [
+                "token",
+                "session",
+                "permission",
+                "permissions",
+                "access",
+                "allowed",
+                "role",
+                "roles"
+              ],
+              "max_interval_seconds": 300,
+              "browser_context_required": false,
+              "precheck_activity": "A1",
+              "precheck_activity_label": "GET /admin/login",
+              "target_activity": "A3",
+              "target_activity_label": "GET /user/people"
+            },
+            "status_code_constraints": {
+              "precheck_activity": "A1",
+              "precheck_status_codes": [
+                "401",
+                "403"
+              ],
+              "status_code_analysis": "441\n当前日志缺失状态码，无法判断服务端是否拦截，但请求本身构成攻击尝试。\n状态码缺失导致无法确认攻击是否成功，但基于访问行为确认风险存在。"
+            }
+          },
+          "formula": "∀s (Occurs(s,A3) ∧ RequiredBefore(A1,A3) ∧ ¬Before(s,A1,A3) ∧ PrecheckFailedOrMissing(s,A1,{\"401\",\"403\"}) → RatedSequenceOrderRisk(s,\"AUTH_BYPASS\",\"high\",\"dashboard 业务顺序约束绕过风险\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C5-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 5,
+        "scenario_id": "C5-S2",
+        "business_pattern_name": "普通用户上下文遍历管理接口与空间对象枚举攻击",
+        "scenario_title": "空间管理接口对象 ID 枚举与批量访问",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "high",
+        "risk_score": 0.88,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "攻击者通过修改 cguid 参数遍历访问多个空间的管理接口，典型的 BOLA 对象级越权攻击模式。",
+        "parameter_target_apis": [
+          "GET /space/manage/security",
+          "GET /space/manage"
+        ],
+        "parameter_context_apis": [],
+        "parameter_normal_sequence": [
+          "cguid 参数应来源于 GET /space/spaces 返回的用户有权管理的空间列表",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/manage/security",
+          "GET /space/space",
+          "GET /admin/module/list",
+          "GET /user/account/edit",
+          "GET /space/manage",
+          "GET /user/account/change-username",
+          "GET /marketplace/purchase",
+          "GET /notification/list"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "GET /space/manage/security",
+            "location": "query",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "cguid",
+            "api": "GET /space/manage",
+            "location": "query",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [],
+        "parameter_dependency_relation": "stable_within_target_api",
+        "expected_parameter_source": "target_api_observed_values",
+        "parameter_risk": "同一会话内针对不同对象 ID 的多值切换访问"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /admin/module/list",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /marketplace/purchase",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Upgrade-Insecure-Requests",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /notification/list",
+          "params": [
+            "from",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token",
+            "X-Requested-With",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/manage",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /space/manage/security",
+          "params": [
+            "_",
+            "_pjax",
+            "cguid",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Cache-Control",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer"
+          ],
+          "object_params": [
+            "cguid",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "GET /space/manage/security",
+              "GET /space/manage"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "cguid 参数应来源于 GET /space/spaces 返回的用户有权管理的空间列表",
+              "GET /space/spaces",
+              "GET /user/people",
+              "GET /space/manage/security",
+              "GET /space/space",
+              "GET /admin/module/list",
+              "GET /user/account/edit",
+              "GET /space/manage",
+              "GET /user/account/change-username",
+              "GET /marketplace/purchase",
+              "GET /notification/list"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/manage/security",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "GET /space/manage",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "GET /space/manage/security",
+                "parameter": "cguid",
+                "source_parameter": "id",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "正常业务中，用户访问管理页面的 cguid 应当属于其可见的空间列表。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "同一会话内针对不同对象 ID 的多值切换访问",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1",
+              "T2"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "GET /space/manage/security",
+                "GET /space/manage"
+              ],
+              "status_code_analysis": "会话中针对 /space/manage/security 和 /space/manage 接口，使用了至少 5 个不同的 cguid 参数值进行访问，且这些值未在 /space/spaces 列表返回结果中被明确绑定（基于参数变化推断）。\ncguid 参数应来源于 GET /space/spaces 返回的用户有权管理的空间列表\n441\n日志缺失状态码，无法确认对象是否存在或权限校验结果，但参数行为符合 BOLA 攻击特征。\n参数行为异常证据确凿，风险等级定为 High。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "GET /space/manage/security",
+              "GET /space/manage"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "GET /space/manage/security",
+                "GET /space/manage"
+              ],
+              "status_code_analysis": "会话中针对 /space/manage/security 和 /space/manage 接口，使用了至少 5 个不同的 cguid 参数值进行访问，且这些值未在 /space/spaces 列表返回结果中被明确绑定（基于参数变化推断）。\ncguid 参数应来源于 GET /space/spaces 返回的用户有权管理的空间列表\n441\n日志缺失状态码，无法确认对象是否存在或权限校验结果，但参数行为符合 BOLA 攻击特征。\n参数行为异常证据确凿，风险等级定为 High。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "GET /space/manage/security"
+                },
+                {
+                  "symbol": "T2",
+                  "value": "GET /space/manage"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理接口对象 ID 枚举与批量访问\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C6-S1",
+      "status": "generated",
+      "source": {
+        "cluster_index": 6,
+        "scenario_id": "C6-S1",
+        "business_pattern_name": "异常高频设置探测与关注对象枚举",
+        "scenario_title": "用户设置接口高频探测与资源消耗",
+        "security_type": "RESOURCE_CONSUMPTION",
+        "raw_security_type": "RESOURCE_CONSUMPTION",
+        "trust_score": 0.92
+      },
+      "scenario_summary": {
+        "security_type": "RESOURCE_CONSUMPTION",
+        "risk_level": "high",
+        "risk_score": 0.9,
+        "risk_type": "sequence_order",
+        "normal_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/change-email"
+        ],
+        "possible_violation_sequence": [
+          "GET /user/account/change-email",
+          "GET /user/account/change-email",
+          "GET /user/account/change-email",
+          "... (Repeated 35 times)"
+        ],
+        "violated_order_constraint": "同一低变更频率接口在短时间内被过度重复调用。",
+        "overall_reason": "自动化脚本对用户设置接口进行高频撞击，存在资源消耗风险，建议增加频控规则。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /user/account/edit"
+          },
+          {
+            "symbol": "A2",
+            "label": "GET /user/account/change-email"
+          },
+          {
+            "symbol": "A3",
+            "label": "... (Repeated 35 times)"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A2",
+          "A2",
+          "A2",
+          "A3"
+        ],
+        "possible_violation_chain": [
+          "A2",
+          "A2",
+          "A2",
+          "A3"
+        ],
+        "missing_or_reordered_activity": "A1",
+        "missing_or_reordered_label": "GET /user/account/edit",
+        "violated_order_constraint": "同一低变更频率接口在短时间内被过度重复调用。",
+        "sequence_subtype": "repeated_call",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 0,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A2",
+        "related_apis": [
+          "GET /user/account/edit"
+        ]
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/account/change-email",
+          "params": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "repeated_call",
+            "activity": "A2",
+            "activity_label": "GET /user/account/change-email",
+            "threshold": "3",
+            "status_code_constraints": {
+              "status_code_analysis": "状态码未知，但极高频率的行为本身已构成强风险证据。\n行为特征（35次重复）明显异常，风险评级主要依据频次证据。"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "repeated_call",
+            "required_activity": "",
+            "target_activity": "",
+            "activity": "A2",
+            "threshold": 3,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "status_code_analysis": "状态码未知，但极高频率的行为本身已构成强风险证据。\n行为特征（35次重复）明显异常，风险评级主要依据频次证据。"
+            }
+          },
+          "formula": "∀s (CountInSession(s,A2) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"high\",\"用户设置接口高频探测与资源消耗\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C6-S2",
+      "status": "generated",
+      "source": {
+        "cluster_index": 6,
+        "scenario_id": "C6-S2",
+        "business_pattern_name": "异常高频设置探测与关注对象枚举",
+        "scenario_title": "关注/取关操作对象不一致性越权",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.92
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "medium",
+        "risk_score": 0.75,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "关注与取关操作针对了不同的用户 ID，显示出攻击者可能在尝试批量操作或枚举，建议增加参数一致性校验。",
+        "parameter_target_apis": [
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow"
+        ],
+        "parameter_context_apis": [],
+        "parameter_normal_sequence": [
+          "follow(cguid=A) -> unfollow(cguid=A)",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-email",
+          "GET /user/account/change-username",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow"
+        ],
+        "parameter_objects": [
+          "cguid"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/follow",
+            "location": "query",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "cguid",
+            "api": "POST /user/profile/unfollow",
+            "location": "query",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [],
+        "parameter_dependency_relation": "stable_within_target_api",
+        "expected_parameter_source": "target_api_observed_values",
+        "parameter_risk": "参数值在逻辑关联的操作对中不匹配。"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/account/change-email",
+          "params": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/change-username",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie",
+            "Host",
+            "Referer",
+            "User-Agent",
+            "X-CSRF-Token"
+          ],
+          "object_params": [
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/account/edit-settings",
+          "params": [
+            "_",
+            "_pjax",
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent",
+            "content-type"
+          ],
+          "object_params": [
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "GET /user/people",
+          "params": [
+            "_",
+            "_pjax",
+            "connection",
+            "keyword",
+            "page",
+            "sort",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "Connection",
+            "Content-Type",
+            "Cookie"
+          ],
+          "object_params": [
+            "keyword",
+            "page",
+            "Content-Type",
+            "User-Agent",
+            "content-type"
+          ],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /user/profile/unfollow",
+              "POST /user/profile/follow"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "follow(cguid=A) -> unfollow(cguid=A)",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/account/change-email",
+              "GET /user/account/change-username",
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/unfollow",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "relation": "stable_within_target_api",
+                "explanation": "cguid 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "参数值在逻辑关联的操作对中不匹配。",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1",
+              "T2"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /user/profile/unfollow",
+                "POST /user/profile/follow"
+              ],
+              "status_code_analysis": "状态码未知，参数不一致本身构成了逻辑异常。\n参数流转逻辑异常，风险等级由参数关系证据支撑。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /user/profile/unfollow",
+              "POST /user/profile/follow"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "POST /user/profile/unfollow",
+                "POST /user/profile/follow"
+              ],
+              "status_code_analysis": "状态码未知，参数不一致本身构成了逻辑异常。\n参数流转逻辑异常，风险等级由参数关系证据支撑。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /user/profile/unfollow"
+                },
+                {
+                  "symbol": "T2",
+                  "value": "POST /user/profile/follow"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"关注/取关操作对象不一致性越权\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    },
+    {
+      "fol_id": "FOL-C7-S1",
+      "status": "generated",
+      "source": {
+        "cluster_index": 7,
+        "scenario_id": "C7-S1",
+        "business_pattern_name": "登录入口高频重放攻击",
+        "scenario_title": "User-Agent 上下文不一致导致的对象级访问风险",
+        "security_type": "BOLA",
+        "raw_security_type": "BOLA",
+        "trust_score": 0.95
+      },
+      "scenario_summary": {
+        "security_type": "BOLA",
+        "risk_level": "high",
+        "risk_score": 0.9,
+        "risk_type": "parameter_consistency",
+        "normal_sequence": [],
+        "possible_violation_sequence": [],
+        "violated_order_constraint": "",
+        "overall_reason": "该场景为典型的自动化脚本攻击，通过单一接口的高频重放消耗资源。尽管被服务端拦截（403），但异常行为特征显著，需建立频控规则。",
+        "parameter_target_apis": [
+          "GET /user/auth/login"
+        ],
+        "parameter_context_apis": [
+          "参数在正常会话中应保持稳定或按业务逻辑变化"
+        ],
+        "parameter_normal_sequence": [
+          "参数在正常会话中应保持稳定或按业务逻辑变化",
+          "GET /user/auth/login"
+        ],
+        "parameter_objects": [
+          "User-Agent",
+          "Cookie"
+        ],
+        "parameter_occurrences": [
+          {
+            "parameter": "User-Agent",
+            "api": "GET /user/auth/login",
+            "location": "header",
+            "role": "target_parameter"
+          },
+          {
+            "parameter": "Cookie",
+            "api": "GET /user/auth/login",
+            "location": "header",
+            "role": "target_parameter"
+          }
+        ],
+        "parameter_context_binding": [],
+        "parameter_dependency_relation": "stable_within_target_api",
+        "expected_parameter_source": "same_request_or_business_context",
+        "parameter_risk": "固定自动化脚本头部与无效/被禁 Cookie 的持续重放"
+      },
+      "predicates": [
+        "Occurs(s,A)",
+        "Before(s,A_before,A_after)",
+        "RequiredBefore(A_required,A_target)",
+        "RiskyAdjacentOrder(s,A_before,A_after)",
+        "CountInSession(s,A)",
+        "StatusCodeIn(s,A,status_codes)",
+        "StatusClassIn(s,A,status_classes)",
+        "ApiStatusClassIn(s,api_scope,status_classes)",
+        "PrecheckFailedOrMissing(s,A_precheck,status_codes)",
+        "ParameterFlowContext(s,context_api_scope,target_api_scope,key_parameters,dependency_relation)",
+        "ParameterAppearsOrDerived(s,target_api_scope,key_parameters)",
+        "ParameterConsistentWithContext(s,context_api_scope,target_api_scope,key_parameters,expected_source)",
+        "DistinctTargetParameterValuesAtLeast(s,target_api_scope,key_parameters,threshold)",
+        "RatedSequenceOrderRisk(s,security_category,risk_level,title)",
+        "RatedParameterRisk(s,security_category,risk_level,title)",
+        "RatedCombinedSequenceParameterRisk(s,security_category,risk_level,title)"
+      ],
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "openapi_summary": [
+        {
+          "api": "GET /user/auth/login",
+          "params": [
+            "Accept",
+            "Accept-Encoding",
+            "Connection",
+            "Cookie",
+            "User-Agent"
+          ],
+          "object_params": [
+            "User-Agent"
+          ],
+          "sensitive_fields": []
+        },
+        {
+          "api": "参数在正常会话中应保持稳定或按业务逻辑变化",
+          "params": [],
+          "object_params": [],
+          "sensitive_fields": []
+        }
+      ],
+      "logic_expression_count": 1,
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "GET /user/auth/login"
+            ],
+            "context_api_scope": [
+              "参数在正常会话中应保持稳定或按业务逻辑变化"
+            ],
+            "normal_parameter_sequence": [
+              "参数在正常会话中应保持稳定或按业务逻辑变化",
+              "GET /user/auth/login"
+            ],
+            "parameters": [
+              "User-Agent",
+              "Cookie"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "User-Agent",
+                "api": "GET /user/auth/login",
+                "location": "header",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "Cookie",
+                "api": "GET /user/auth/login",
+                "location": "header",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "参数在正常会话中应保持稳定或按业务逻辑变化",
+                "target_api": "GET /user/auth/login",
+                "parameter": "User-Agent",
+                "relation": "stable_within_target_api",
+                "explanation": "User-Agent 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              },
+              {
+                "source_api": "参数在正常会话中应保持稳定或按业务逻辑变化",
+                "target_api": "GET /user/auth/login",
+                "parameter": "Cookie",
+                "relation": "stable_within_target_api",
+                "explanation": "Cookie 应由上下文 API 约束目标 API，不能在后续调用中脱离上下文或中途替换。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "same_request_or_business_context",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "固定自动化脚本头部与无效/被禁 Cookie 的持续重放",
+            "context_api_scope_symbols": [
+              "C1"
+            ],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1",
+              "P2"
+            ],
+            "status_code_constraints": {
+              "target_api_scope": [
+                "GET /user/auth/login"
+              ],
+              "status_code_analysis": "高频重复请求，试图耗尽服务器连接资源或进行凭证枚举（尽管本例中被 403 拦截）。\n状态码分析\n80\n全量 403 响应表明服务端已识别并拒绝了该重复请求，但这并不排除攻击者正在测试不同 Cookie 或试图绕过 WAF 的可能性。\nGET /user/auth/login 返回 403，符合未授权或被拦截特征。\n虽然服务端返回 403 证明攻击未成功突破权限，但攻击意图明显且造成资源浪费，故保持高风险评级。\n无前置 API。\n该场景为典型的自动化脚本攻击，通过单一接口的高频重放消耗资源。尽管被服务端拦截（403），但异常行为特征显著，需建立频控规则。"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "User-Agent",
+              "Cookie"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "GET /user/auth/login"
+            ],
+            "context_api_scope": [
+              "参数在正常会话中应保持稳定或按业务逻辑变化"
+            ],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "same_request_or_business_context",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_api_scope": [
+                "GET /user/auth/login"
+              ],
+              "status_code_analysis": "高频重复请求，试图耗尽服务器连接资源或进行凭证枚举（尽管本例中被 403 拦截）。\n状态码分析\n80\n全量 403 响应表明服务端已识别并拒绝了该重复请求，但这并不排除攻击者正在测试不同 Cookie 或试图绕过 WAF 的可能性。\nGET /user/auth/login 返回 403，符合未授权或被拦截特征。\n虽然服务端返回 403 证明攻击未成功突破权限，但攻击意图明显且造成资源浪费，故保持高风险评级。\n无前置 API。\n该场景为典型的自动化脚本攻击，通过单一接口的高频重放消耗资源。尽管被服务端拦截（403），但异常行为特征显著，需建立频控规则。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "参数在正常会话中应保持稳定或按业务逻辑变化"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "GET /user/auth/login"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "User-Agent"
+                },
+                {
+                  "symbol": "P2",
+                  "value": "Cookie"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1,P2}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1,P2},2) → RatedParameterRisk(s,\"BOLA\",\"high\",\"User-Agent 上下文不一致导致的对象级访问风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ],
+      "plain_language": "表达式会按场景选择生成方式：只有参数画像证明源 API 与目标 API 存在真实同名参数关系时，才生成跨 API 参数来源约束；否则降级为目标 API 内部参数值切换/枚举检测。若场景中有响应码证据，会加入 StatusCodeIn/StatusClassIn/ApiStatusClassIn 作为证据谓词。响应码只作为风险可信度证据，不单独证明越权或攻击成功。",
+      "generation_note": "默认输出已压缩；顺序风险和参数风险会按场景关系选择合并或拆分。"
+    }
+  ]
+}

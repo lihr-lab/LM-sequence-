@@ -1,0 +1,1350 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [
+    {
+      "candidate": {
+        "fol_id": "FOL-C20-S1",
+        "action": "narrow_api_scope",
+        "expression_index": 1,
+        "new_threshold": null,
+        "new_dimension": "",
+        "modified_scope": {
+          "target_api_scope": [
+            "GET /space/manage/security"
+          ]
+        },
+        "modified_expression": null,
+        "rationale": "收窄目标 API 范围至 'GET /space/manage/security'。规则标题为“空间管理安全设置接口”，而 'GET /space/manage' 属于通用管理入口，用户常直接访问导致上下文缺失误报。收窄范围可消除 combined_1 和 combined_4 等针对通用入口的误报，精准聚焦安全设置接口。",
+        "false_positive_reason": "规则误报主要集中在三个方面：1. 目标 API 范围过宽，包含了 GET /space/manage，该接口通常作为空间管理的入口或仪表盘，用户常通过书签或直接输入 URL 访问，导致大量 'context_missing' 或 'not_from_context' 类型的误报（如 combined_1, combined_4）；2. 切换阈值过低，当前 min_distinct_target_values 为 2，正常用户在同一会话中管理多个空间（如切换空间上下文）时，极易触发参数值切换检测（如 combined_2, combined_3）；3. 缺乏严格的时间序列约束，检测器将目标请求之后的上下文 API 调用（如 combined_5 中 Step 19 的 context）视为合法来源依据，逻辑上不成立，因为目标请求发生时尚未建立上下文。"
+      },
+      "accepted": true,
+      "before_rule_score": [
+        143,
+        194
+      ],
+      "after_rule_score": [
+        56,
+        58
+      ],
+      "before_full_score": [
+        849,
+        1550
+      ],
+      "after_full_score": [
+        819,
+        1414
+      ]
+    }
+  ],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-C20-S1",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 56,
+      "false_positive_hit_count": 58,
+      "false_positive_rate": 0.023064250411861616
+    },
+    "rule": {
+      "fol_id": "FOL-C20-S1",
+      "scenario_title": "空间管理安全设置接口的对象级越权访问风险",
+      "security_type": "BOLA",
+      "risk_level": "high",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "GET /space/manage/security"
+            ],
+            "context_api_scope": [
+              "GET /space/spaces",
+              "GET /space/space"
+            ],
+            "normal_parameter_sequence": [
+              "GET /space/spaces",
+              "GET /space/space?cguid=xxx",
+              "GET /space/manage/security?cguid=xxx",
+              "GET /user/people",
+              "GET /space/space",
+              "GET /space/manage",
+              "GET /space/manage/security",
+              "GET /user/account/edit",
+              "GET /user/account/change-username"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "context_source"
+              },
+              {
+                "parameter": "cguid",
+                "api": "GET /space/manage/security",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [
+              {
+                "source_api": "GET /space/space",
+                "target_api": "GET /space/manage/security",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "安全管理接口的 cguid 应来源于用户已访问并具备权限的空间详情或列表上下文"
+              }
+            ],
+            "dropped_unverified_parameters": [],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "upstream_context_api",
+            "dependency_relation": "bound_to_upstream_context",
+            "risk_form": "请求目标接口的 cguid 未出现在上游上下文接口中，或直接请求目标接口",
+            "context_api_scope_symbols": [
+              "C1",
+              "C2"
+            ],
+            "target_api_scope_symbols": [
+              "T1",
+              "T2"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "GET /space/manage/security",
+                "GET /space/manage"
+              ],
+              "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+            }
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch",
+              "context_missing",
+              "not_from_context"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "GET /space/manage/security"
+            ],
+            "context_api_scope": [
+              "GET /space/spaces",
+              "GET /space/space"
+            ],
+            "dependency_relation": "bound_to_upstream_context",
+            "expected_source": "upstream_context_api",
+            "require_context": true,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "GET /space/manage/security"
+              ],
+              "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [
+                {
+                  "symbol": "C1",
+                  "value": "GET /space/spaces"
+                },
+                {
+                  "symbol": "C2",
+                  "value": "GET /space/space"
+                }
+              ],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "GET /space/manage/security"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_2",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+              ],
+              "context_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "target_apis": [
+                "GET /space/manage/security"
+              ],
+              "context_apis": [
+                "GET /space/spaces",
+                "GET /space/space"
+              ],
+              "target_steps": [
+                7
+              ],
+              "context_steps": [
+                5
+              ],
+              "target_examples": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "request": "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "request": "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                ],
+                "context_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "unexpected_target_values": [
+                  "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 7,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                    "request": "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                    "request": "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 7,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "status_class": "2xx"
+                  },
+                  {
+                    "step": 6,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 5,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+              "request": "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 7,
+              "api": "GET /space/manage/security",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+              "request": "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+              ],
+              "context_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "unexpected_target_values": [
+                "a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+                  "request": "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /admin/user-profile",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/profile/about",
+          "GET /user/profile",
+          "GET /notification/list",
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "POST /like/like/like"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list?_pjax=%23layout-content&_=1737029626239",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /space/manage?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /space/manage/security?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "GET /space/manage/member?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "GET /admin/user-profile",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/profile/about?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "GET /user/profile?cguid=e661b05e-7cc5-4468-88e0-96689333f7bf",
+          "GET /notification/list?from=0",
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=10"
+        ]
+      },
+      {
+        "session_id": "combined_3",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+              ],
+              "context_values": [
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "target_apis": [
+                "GET /space/manage/security"
+              ],
+              "context_apis": [
+                "GET /space/spaces",
+                "GET /space/space"
+              ],
+              "target_steps": [
+                13
+              ],
+              "context_steps": [
+                11
+              ],
+              "target_examples": [
+                {
+                  "step": 13,
+                  "api": "GET /space/manage/security",
+                  "request": "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 13,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                ],
+                "context_values": [
+                  "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                ],
+                "unexpected_target_values": [
+                  "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 13,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                    "request": "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 11,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                    "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 13,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "status_class": "2xx"
+                  },
+                  {
+                    "step": 12,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 11,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+              "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 13,
+              "api": "GET /space/manage/security",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+              "request": "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+              ],
+              "context_values": [
+                "d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+              ],
+              "unexpected_target_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 13,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+                  "request": "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /activity/admin/defaults",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /admin/user-profile",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/manage?cguid=45446c8f-2181-412f-ba18-20aa01e356fc",
+          "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage/member?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /activity/admin/defaults",
+          "POST /post/post/post?cguid=b92568e9-c3d5-4d87-b045-c39b1aa18901 BODY {\"_csrf\":\"JbTq4cwp5TAkzLZwsOUiRlyMxdjyR4pPvdHimkfMHJ1JjLqGphzRQ0qZ4jvJ1HcXGfuRsr0y0B33gqzIcKRN8g==\",\"message\":\"dbfcg\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":null}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Ccomment%5Cmodels%5CComment&contentId=20",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email"
+        ]
+      },
+      {
+        "session_id": "combined_5",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "target_apis": [
+                "GET /space/manage/security"
+              ],
+              "context_apis": [
+                "GET /space/spaces",
+                "GET /space/space"
+              ],
+              "target_steps": [
+                5
+              ],
+              "context_steps": [
+                19
+              ],
+              "target_examples": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage/security",
+                  "request": "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 19,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 19,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "context_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                ],
+                "unexpected_target_values": [
+                  "e782abba-254b-4d69-ae2c-6417c56768a3"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 5,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                    "request": "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 19,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 5,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "status_class": "2xx"
+                  },
+                  {
+                    "step": 4,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 19,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 5,
+              "api": "GET /space/manage/security",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+              "request": "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "context_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "unexpected_target_values": [
+                "e782abba-254b-4d69-ae2c-6417c56768a3"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 5,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "e782abba-254b-4d69-ae2c-6417c56768a3",
+                  "request": "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 19,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /space/manage/module",
+          "GET /space/manage/default/advanced",
+          "GET /space/manage/security/permissions",
+          "GET /space/manage/member/index",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /activity/admin/defaults",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /user/profile/about"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage?cguid=244affcf-ea4d-49f3-a483-fe56e2f06c6e",
+          "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /space/manage/member?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /space/manage/module?cguid=78d3f2d5-4193-4c6a-ac11-72757437b1a3",
+          "GET /space/manage/default/advanced?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /space/manage/security/permissions?cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /space/manage/member/index?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /activity/admin/defaults",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs?_pjax=%23layout-content&_=1737029581146",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space?tour=1&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /user/profile/about?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+        ]
+      },
+      {
+        "session_id": "combined_6",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_context_missing",
+              "parameter": "cguid",
+              "target_apis": [
+                "GET /space/manage/security"
+              ],
+              "context_apis": [
+                "GET /space/spaces",
+                "GET /space/space"
+              ],
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "target_steps": [
+                7
+              ],
+              "examples": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "request": "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 7,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 7,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "status_class": "2xx"
+                  },
+                  {
+                    "step": 6,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 7,
+              "api": "GET /space/manage/security",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 7,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /space/manage/module",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/member/change-owner",
+          "GET /space/manage/default/advanced",
+          "GET /space/manage/security/permissions",
+          "GET /space/manage/member/index",
+          "POST /post/post/post",
+          "POST /post/post/edit"
+        ],
+        "raw_sequence": [
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /space/manage?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+          "GET /space/manage/security?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede",
+          "GET /space/manage/member?cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011",
+          "GET /space/manage/module?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/member/change-owner?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /space/manage/default/advanced?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/manage/security/permissions?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /space/manage/member/index?cguid=a8de2727-9d87-41e5-a0bc-9686d47bfe8b",
+          "POST /post/post/post?cguid=2a61088c-1182-463d-90cb-2cdea7b7385c BODY {\"_csrf\":\"T6kWL_mjbOI4StTQjY2RK2t5445ukcB0K40psYCex9gjkUZIk5ZYkVYfgJv0vMR6Lg635CHkmiZh3mfjt_aWtw==\",\"message\":\"afwssgdrf \",\"postTopicInput[]\":\"_add:sgdvr f\",\"containerGuid\":\"2a61088c-1182-463d-90cb-2cdea7b7385c\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=24&cguid=fc1236d5-5643-4c9b-8f63-9cc27ad56011 BODY {\"_csrf\":\"gyZp4A8f8jeVfAOWOz6T1FgN88ZhJYIBZ2nQacLYauy7TiWKfmiTe_szS-5fc-aVa3SciiJ9zFVVUaUAppEooA==\",\"Post[message]\":\"sdbfxcavsdxbh\"}"
+        ]
+      },
+      {
+        "session_id": "combined_8",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterFlowContext(s,{C1,C2},{T1,T2},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1,C2},{T1,T2},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/manage/security\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"空间管理安全设置接口的对象级越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_not_from_context",
+              "parameter": "cguid",
+              "unexpected_target_values": [
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+              ],
+              "context_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+              ],
+              "target_apis": [
+                "GET /space/manage/security"
+              ],
+              "context_apis": [
+                "GET /space/spaces",
+                "GET /space/space"
+              ],
+              "target_steps": [
+                8
+              ],
+              "context_steps": [
+                6
+              ],
+              "target_examples": [
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/security",
+                  "request": "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "context_examples": [
+                {
+                  "step": 6,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "status": 200,
+                  "observed_parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "key_context_steps": [
+                {
+                  "step": 6,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "changed_parameters": [],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                ],
+                "context_values": [
+                  "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                ],
+                "unexpected_target_values": [
+                  "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                ],
+                "missing_from_context": false,
+                "target_occurrences": [
+                  {
+                    "step": 8,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                    "request": "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                  }
+                ],
+                "context_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "GET /space/space",
+                    "status": 200,
+                    "parameter": "cguid",
+                    "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                    "request": "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                  }
+                ],
+                "value_changes_in_target": []
+              },
+              "status_evidence": {
+                "target_api_scope_status": [
+                  {
+                    "step": 8,
+                    "api": "GET /space/manage/security",
+                    "status": 200,
+                    "status_class": "2xx"
+                  },
+                  {
+                    "step": 7,
+                    "api": "GET /space/manage",
+                    "status": 200,
+                    "status_class": "2xx"
+                  }
+                ],
+                "status_code_analysis": "请求 GET /space/manage/security 返回 2xx，且请求中的 cguid 未出现在该用户的历史空间列表或详情上下文中\n状态码分析\n42\n代表序列所有步骤状态码均为 0，无法确认请求是否成功处理\n安全管理接口返回状态未知，若实际返回 2xx 则强支持漏洞存在，若返回 403/404 则说明存在控制\n由于缺失状态码证据，无法确认攻击是否成功，但基于接口敏感性和参数暴露位置，预判风险等级为 High"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 6,
+              "api": "GET /space/space",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+              "request": "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 8,
+              "api": "GET /space/manage/security",
+              "status": 200,
+              "parameter": "cguid",
+              "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+              "request": "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+              ],
+              "context_values": [
+                "b177d8bb-b88c-40d3-967a-cdf4e3609035"
+              ],
+              "unexpected_target_values": [
+                "21e1bb35-3277-4044-acf4-107f3c0b3b41"
+              ],
+              "missing_from_context": false,
+              "target_occurrences": [
+                {
+                  "step": 8,
+                  "api": "GET /space/manage/security",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "21e1bb35-3277-4044-acf4-107f3c0b3b41",
+                  "request": "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41"
+                }
+              ],
+              "context_occurrences": [
+                {
+                  "step": 6,
+                  "api": "GET /space/space",
+                  "status": 200,
+                  "parameter": "cguid",
+                  "value": "b177d8bb-b88c-40d3-967a-cdf4e3609035",
+                  "request": "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035"
+                }
+              ],
+              "value_changes_in_target": []
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /user/people",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /space/manage/member",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/module",
+          "GET /space/manage/default/advanced",
+          "GET /space/manage/security/permissions",
+          "GET /space/manage/member/index",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings"
+        ],
+        "raw_sequence": [
+          "GET /admin/space",
+          "GET /admin/module/list",
+          "GET /admin/user-profile",
+          "GET /user/people",
+          "GET /space/spaces?_pjax=%23layout-content&_=1737030820753",
+          "GET /space/space?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /space/manage/security?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/manage/member?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /marketplace/purchase",
+          "GET /marketplace/update",
+          "GET /marketplace/browse/thirdparty-disclaimer",
+          "GET /admin/information/database",
+          "GET /admin/information/background-jobs",
+          "GET /space/manage/module?cguid=c239fe95-c444-41e0-8090-50b27c1455f5",
+          "GET /space/manage/default/advanced?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/manage/security/permissions?cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /space/manage/member/index?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings"
+        ]
+      }
+    ]
+  }
+}

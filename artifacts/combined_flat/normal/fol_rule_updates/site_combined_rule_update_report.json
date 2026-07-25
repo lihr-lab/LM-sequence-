@@ -1,0 +1,2706 @@
+{
+  "site_id": "combined",
+  "fol_file": "artifacts\\combined_flat\\normal\\fol_expressions\\site_combined_fol_expressions_next.json",
+  "next_rules_file": "artifacts\\combined_flat\\normal\\fol_expressions\\site_combined_fol_expressions_next.json",
+  "session_count": 2697,
+  "normal_data_assumption": "使用 --validation-input-dir 时加载带标签验证集并按逐规则 F1 优化；否则默认仅加载正常会话，命中按误报计入。",
+  "target_rule_fp_rate": 0.01,
+  "target_rule_min_f1": 0.7,
+  "min_rule_fp_sessions": 1,
+  "validation_input_dir": "artifacts\\combined_flat\\validation\\log_sequence",
+  "initial_detection": {
+    "session_count": 2697,
+    "normal_session_count": 2428,
+    "anomalous_session_count": 269,
+    "labeled_scoring_available": true,
+    "active_rule_count": 34,
+    "hit_session_count": 865,
+    "hit_count": 1955,
+    "true_positive_session_count": 175,
+    "false_positive_session_count": 690,
+    "false_negative_session_count": 94,
+    "false_positive_rate": 0.2841845140032949,
+    "precision": 0.2023121387283237,
+    "recall": 0.6505576208178439,
+    "f1": 0.30864197530864196,
+    "rule_false_positive_stats": {
+      "FOL-18-1": {
+        "fol_id": "FOL-18-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-22-1": {
+        "fol_id": "FOL-22-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-22-2": {
+        "fol_id": "FOL-22-2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-24-1": {
+        "fol_id": "FOL-24-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-25-scenario-1": {
+        "fol_id": "FOL-25-scenario-1",
+        "hit_session_count": 29,
+        "true_positive_session_count": 27,
+        "false_positive_session_count": 2,
+        "false_negative_session_count": 242,
+        "false_positive_hit_count": 640,
+        "false_positive_rate": 0.0008237232289950577,
+        "precision": 0.9310344827586207,
+        "recall": 0.10037174721189591,
+        "f1": 0.18120805369127516,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2435"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2434",
+          "combined_2499",
+          "combined_2500",
+          "combined_2507"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1055",
+          "combined_753"
+        ]
+      },
+      "FOL-25-scenario-2": {
+        "fol_id": "FOL-25-scenario-2",
+        "hit_session_count": 91,
+        "true_positive_session_count": 52,
+        "false_positive_session_count": 39,
+        "false_negative_session_count": 217,
+        "false_positive_hit_count": 111,
+        "false_positive_rate": 0.016062602965403624,
+        "precision": 0.5714285714285714,
+        "recall": 0.19330855018587362,
+        "f1": 0.2888888888888889,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2432",
+          "combined_2434",
+          "combined_2436",
+          "combined_2440",
+          "combined_2441"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2433",
+          "combined_2435"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_1043",
+          "combined_1045",
+          "combined_105"
+        ]
+      },
+      "FOL-26-S1": {
+        "fol_id": "FOL-26-S1",
+        "hit_session_count": 36,
+        "true_positive_session_count": 23,
+        "false_positive_session_count": 13,
+        "false_negative_session_count": 246,
+        "false_positive_hit_count": 36,
+        "false_positive_rate": 0.005354200988467875,
+        "precision": 0.6388888888888888,
+        "recall": 0.08550185873605948,
+        "f1": 0.15081967213114755,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2434"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2498",
+          "combined_2500",
+          "combined_2502",
+          "combined_2503"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_14",
+          "combined_161",
+          "combined_20"
+        ]
+      },
+      "FOL-28-scenario-1": {
+        "fol_id": "FOL-28-scenario-1",
+        "hit_session_count": 75,
+        "true_positive_session_count": 62,
+        "false_positive_session_count": 13,
+        "false_negative_session_count": 207,
+        "false_positive_hit_count": 75,
+        "false_positive_rate": 0.005354200988467875,
+        "precision": 0.8266666666666667,
+        "recall": 0.23048327137546468,
+        "f1": 0.3604651162790697,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2498",
+          "combined_2500",
+          "combined_2501",
+          "combined_2503",
+          "combined_2504"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1090",
+          "combined_1114",
+          "combined_1176",
+          "combined_1209",
+          "combined_1214"
+        ]
+      },
+      "FOL-28-scenario-2": {
+        "fol_id": "FOL-28-scenario-2",
+        "hit_session_count": 3,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 3,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 3,
+        "false_positive_rate": 0.0012355848434925864,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": [
+          "combined_184",
+          "combined_206",
+          "combined_211"
+        ]
+      },
+      "FOL-32-1": {
+        "fol_id": "FOL-32-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-33-1": {
+        "fol_id": "FOL-33-1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-33-2": {
+        "fol_id": "FOL-33-2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-35-scenario-1": {
+        "fol_id": "FOL-35-scenario-1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-38-1": {
+        "fol_id": "FOL-38-1",
+        "hit_session_count": 170,
+        "true_positive_session_count": 18,
+        "false_positive_session_count": 152,
+        "false_negative_session_count": 251,
+        "false_positive_hit_count": 176,
+        "false_positive_rate": 0.06260296540362438,
+        "precision": 0.10588235294117647,
+        "recall": 0.06691449814126393,
+        "f1": 0.08200455580865602,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2434"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2438",
+          "combined_2443",
+          "combined_2648",
+          "combined_2650"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_107",
+          "combined_109",
+          "combined_110",
+          "combined_111",
+          "combined_113"
+        ]
+      },
+      "FOL-8-1": {
+        "fol_id": "FOL-8-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-8-2": {
+        "fol_id": "FOL-8-2",
+        "hit_session_count": 2,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 2,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.007434944237918215,
+        "f1": 0.014760147601476014,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2464",
+          "combined_2467"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-9-1": {
+        "fol_id": "FOL-9-1",
+        "hit_session_count": 1,
+        "true_positive_session_count": 1,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 268,
+        "false_positive_hit_count": 1,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.0037174721189591076,
+        "f1": 0.007407407407407408,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2532"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C12-S1": {
+        "fol_id": "FOL-C12-S1",
+        "hit_session_count": 576,
+        "true_positive_session_count": 62,
+        "false_positive_session_count": 514,
+        "false_negative_session_count": 207,
+        "false_positive_hit_count": 609,
+        "false_positive_rate": 0.2116968698517298,
+        "precision": 0.1076388888888889,
+        "recall": 0.23048327137546468,
+        "f1": 0.1467455621301775,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2435",
+          "combined_2440",
+          "combined_2444",
+          "combined_2445"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2434"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_100",
+          "combined_101",
+          "combined_104",
+          "combined_106",
+          "combined_107"
+        ]
+      },
+      "FOL-C12-S2": {
+        "fol_id": "FOL-C12-S2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C13-S1": {
+        "fol_id": "FOL-C13-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C13-S2": {
+        "fol_id": "FOL-C13-S2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C14-S1": {
+        "fol_id": "FOL-C14-S1",
+        "hit_session_count": 6,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 4,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 6,
+        "false_positive_rate": 0.0016474464579901153,
+        "precision": 0.3333333333333333,
+        "recall": 0.007434944237918215,
+        "f1": 0.014545454545454544,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2599",
+          "combined_2634"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1550",
+          "combined_1895",
+          "combined_665",
+          "combined_744"
+        ]
+      },
+      "FOL-C15-S1": {
+        "fol_id": "FOL-C15-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C19-S1": {
+        "fol_id": "FOL-C19-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C2-S1": {
+        "fol_id": "FOL-C2-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C20-S1": {
+        "fol_id": "FOL-C20-S1",
+        "hit_session_count": 107,
+        "true_positive_session_count": 55,
+        "false_positive_session_count": 52,
+        "false_negative_session_count": 214,
+        "false_positive_hit_count": 111,
+        "false_positive_rate": 0.0214168039538715,
+        "precision": 0.514018691588785,
+        "recall": 0.20446096654275092,
+        "f1": 0.2925531914893617,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2434",
+          "combined_2436",
+          "combined_2444",
+          "combined_2445",
+          "combined_2446"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_105",
+          "combined_11",
+          "combined_128"
+        ]
+      },
+      "FOL-C21-S1": {
+        "fol_id": "FOL-C21-S1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-C21-S2": {
+        "fol_id": "FOL-C21-S2",
+        "hit_session_count": 4,
+        "true_positive_session_count": 4,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 265,
+        "false_positive_hit_count": 4,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.01486988847583643,
+        "f1": 0.0293040293040293,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2630",
+          "combined_2633",
+          "combined_2637",
+          "combined_2645"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C23-S1": {
+        "fol_id": "FOL-C23-S1",
+        "hit_session_count": 2,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 2,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.007434944237918215,
+        "f1": 0.014760147601476014,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2532",
+          "combined_2651"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C30-S1": {
+        "fol_id": "FOL-C30-S1",
+        "hit_session_count": 33,
+        "true_positive_session_count": 26,
+        "false_positive_session_count": 7,
+        "false_negative_session_count": 243,
+        "false_positive_hit_count": 33,
+        "false_positive_rate": 0.002883031301482702,
+        "precision": 0.7878787878787878,
+        "recall": 0.09665427509293681,
+        "f1": 0.17218543046357618,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2599",
+          "combined_2605",
+          "combined_2606",
+          "combined_2607",
+          "combined_2610"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1551",
+          "combined_1634",
+          "combined_1647",
+          "combined_1660",
+          "combined_1687"
+        ]
+      },
+      "FOL-C31-S1": {
+        "fol_id": "FOL-C31-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C34-S1": {
+        "fol_id": "FOL-C34-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C36-S1": {
+        "fol_id": "FOL-C36-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C5-S1": {
+        "fol_id": "FOL-C5-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      }
+    }
+  },
+  "final_detection": {
+    "session_count": 2697,
+    "normal_session_count": 2428,
+    "anomalous_session_count": 269,
+    "labeled_scoring_available": true,
+    "active_rule_count": 34,
+    "hit_session_count": 907,
+    "hit_count": 2008,
+    "true_positive_session_count": 178,
+    "false_positive_session_count": 729,
+    "false_negative_session_count": 91,
+    "false_positive_rate": 0.3002471169686985,
+    "precision": 0.19625137816979052,
+    "recall": 0.6617100371747212,
+    "f1": 0.3027210884353741,
+    "rule_false_positive_stats": {
+      "FOL-18-1": {
+        "fol_id": "FOL-18-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-22-1": {
+        "fol_id": "FOL-22-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-22-2": {
+        "fol_id": "FOL-22-2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-24-1": {
+        "fol_id": "FOL-24-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-25-scenario-1": {
+        "fol_id": "FOL-25-scenario-1",
+        "hit_session_count": 29,
+        "true_positive_session_count": 27,
+        "false_positive_session_count": 2,
+        "false_negative_session_count": 242,
+        "false_positive_hit_count": 640,
+        "false_positive_rate": 0.0008237232289950577,
+        "precision": 0.9310344827586207,
+        "recall": 0.10037174721189591,
+        "f1": 0.18120805369127516,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2435"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2434",
+          "combined_2499",
+          "combined_2500",
+          "combined_2507"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1055",
+          "combined_753"
+        ]
+      },
+      "FOL-25-scenario-2": {
+        "fol_id": "FOL-25-scenario-2",
+        "hit_session_count": 91,
+        "true_positive_session_count": 52,
+        "false_positive_session_count": 39,
+        "false_negative_session_count": 217,
+        "false_positive_hit_count": 111,
+        "false_positive_rate": 0.016062602965403624,
+        "precision": 0.5714285714285714,
+        "recall": 0.19330855018587362,
+        "f1": 0.2888888888888889,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2432",
+          "combined_2434",
+          "combined_2436",
+          "combined_2440",
+          "combined_2441"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2433",
+          "combined_2435"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_1043",
+          "combined_1045",
+          "combined_105"
+        ]
+      },
+      "FOL-26-S1": {
+        "fol_id": "FOL-26-S1",
+        "hit_session_count": 36,
+        "true_positive_session_count": 23,
+        "false_positive_session_count": 13,
+        "false_negative_session_count": 246,
+        "false_positive_hit_count": 36,
+        "false_positive_rate": 0.005354200988467875,
+        "precision": 0.6388888888888888,
+        "recall": 0.08550185873605948,
+        "f1": 0.15081967213114755,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2434"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2498",
+          "combined_2500",
+          "combined_2502",
+          "combined_2503"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_14",
+          "combined_161",
+          "combined_20"
+        ]
+      },
+      "FOL-28-scenario-1": {
+        "fol_id": "FOL-28-scenario-1",
+        "hit_session_count": 75,
+        "true_positive_session_count": 62,
+        "false_positive_session_count": 13,
+        "false_negative_session_count": 207,
+        "false_positive_hit_count": 75,
+        "false_positive_rate": 0.005354200988467875,
+        "precision": 0.8266666666666667,
+        "recall": 0.23048327137546468,
+        "f1": 0.3604651162790697,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2498",
+          "combined_2500",
+          "combined_2501",
+          "combined_2503",
+          "combined_2504"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1090",
+          "combined_1114",
+          "combined_1176",
+          "combined_1209",
+          "combined_1214"
+        ]
+      },
+      "FOL-28-scenario-2": {
+        "fol_id": "FOL-28-scenario-2",
+        "hit_session_count": 3,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 3,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 3,
+        "false_positive_rate": 0.0012355848434925864,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": [
+          "combined_184",
+          "combined_206",
+          "combined_211"
+        ]
+      },
+      "FOL-32-1": {
+        "fol_id": "FOL-32-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-33-1": {
+        "fol_id": "FOL-33-1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-33-2": {
+        "fol_id": "FOL-33-2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-35-scenario-1": {
+        "fol_id": "FOL-35-scenario-1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-38-1": {
+        "fol_id": "FOL-38-1",
+        "hit_session_count": 219,
+        "true_positive_session_count": 23,
+        "false_positive_session_count": 196,
+        "false_negative_session_count": 246,
+        "false_positive_hit_count": 229,
+        "false_positive_rate": 0.08072487644151564,
+        "precision": 0.1050228310502283,
+        "recall": 0.08550185873605948,
+        "f1": 0.0942622950819672,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2435"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2434",
+          "combined_2438",
+          "combined_2440",
+          "combined_2443"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_100",
+          "combined_107",
+          "combined_109",
+          "combined_110",
+          "combined_111"
+        ]
+      },
+      "FOL-8-1": {
+        "fol_id": "FOL-8-1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-8-2": {
+        "fol_id": "FOL-8-2",
+        "hit_session_count": 2,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 2,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.007434944237918215,
+        "f1": 0.014760147601476014,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2464",
+          "combined_2467"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-9-1": {
+        "fol_id": "FOL-9-1",
+        "hit_session_count": 1,
+        "true_positive_session_count": 1,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 268,
+        "false_positive_hit_count": 1,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.0037174721189591076,
+        "f1": 0.007407407407407408,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2532"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C12-S1": {
+        "fol_id": "FOL-C12-S1",
+        "hit_session_count": 576,
+        "true_positive_session_count": 62,
+        "false_positive_session_count": 514,
+        "false_negative_session_count": 207,
+        "false_positive_hit_count": 609,
+        "false_positive_rate": 0.2116968698517298,
+        "precision": 0.1076388888888889,
+        "recall": 0.23048327137546468,
+        "f1": 0.1467455621301775,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2435",
+          "combined_2440",
+          "combined_2444",
+          "combined_2445"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433",
+          "combined_2434"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_100",
+          "combined_101",
+          "combined_104",
+          "combined_106",
+          "combined_107"
+        ]
+      },
+      "FOL-C12-S2": {
+        "fol_id": "FOL-C12-S2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C13-S1": {
+        "fol_id": "FOL-C13-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C13-S2": {
+        "fol_id": "FOL-C13-S2",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C14-S1": {
+        "fol_id": "FOL-C14-S1",
+        "hit_session_count": 6,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 4,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 6,
+        "false_positive_rate": 0.0016474464579901153,
+        "precision": 0.3333333333333333,
+        "recall": 0.007434944237918215,
+        "f1": 0.014545454545454544,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2599",
+          "combined_2634"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1550",
+          "combined_1895",
+          "combined_665",
+          "combined_744"
+        ]
+      },
+      "FOL-C15-S1": {
+        "fol_id": "FOL-C15-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C19-S1": {
+        "fol_id": "FOL-C19-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C2-S1": {
+        "fol_id": "FOL-C2-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C20-S1": {
+        "fol_id": "FOL-C20-S1",
+        "hit_session_count": 107,
+        "true_positive_session_count": 55,
+        "false_positive_session_count": 52,
+        "false_negative_session_count": 214,
+        "false_positive_hit_count": 111,
+        "false_positive_rate": 0.0214168039538715,
+        "precision": 0.514018691588785,
+        "recall": 0.20446096654275092,
+        "f1": 0.2925531914893617,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2434",
+          "combined_2436",
+          "combined_2444",
+          "combined_2445",
+          "combined_2446"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_10",
+          "combined_1025",
+          "combined_105",
+          "combined_11",
+          "combined_128"
+        ]
+      },
+      "FOL-C21-S1": {
+        "fol_id": "FOL-C21-S1",
+        "hit_session_count": 14,
+        "true_positive_session_count": 13,
+        "false_positive_session_count": 1,
+        "false_negative_session_count": 256,
+        "false_positive_hit_count": 14,
+        "false_positive_rate": 0.00041186161449752884,
+        "precision": 0.9285714285714286,
+        "recall": 0.048327137546468404,
+        "f1": 0.09187279151943463,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2605",
+          "combined_2606",
+          "combined_2613",
+          "combined_2616",
+          "combined_2622"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1761"
+        ]
+      },
+      "FOL-C21-S2": {
+        "fol_id": "FOL-C21-S2",
+        "hit_session_count": 4,
+        "true_positive_session_count": 4,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 265,
+        "false_positive_hit_count": 4,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.01486988847583643,
+        "f1": 0.0293040293040293,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2630",
+          "combined_2633",
+          "combined_2637",
+          "combined_2645"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C23-S1": {
+        "fol_id": "FOL-C23-S1",
+        "hit_session_count": 2,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 2,
+        "false_positive_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.007434944237918215,
+        "f1": 0.014760147601476014,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2532",
+          "combined_2651"
+        ],
+        "sampled_false_positive_session_ids": []
+      },
+      "FOL-C30-S1": {
+        "fol_id": "FOL-C30-S1",
+        "hit_session_count": 33,
+        "true_positive_session_count": 26,
+        "false_positive_session_count": 7,
+        "false_negative_session_count": 243,
+        "false_positive_hit_count": 33,
+        "false_positive_rate": 0.002883031301482702,
+        "precision": 0.7878787878787878,
+        "recall": 0.09665427509293681,
+        "f1": 0.17218543046357618,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2599",
+          "combined_2605",
+          "combined_2606",
+          "combined_2607",
+          "combined_2610"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_1551",
+          "combined_1634",
+          "combined_1647",
+          "combined_1660",
+          "combined_1687"
+        ]
+      },
+      "FOL-C31-S1": {
+        "fol_id": "FOL-C31-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C34-S1": {
+        "fol_id": "FOL-C34-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C36-S1": {
+        "fol_id": "FOL-C36-S1",
+        "hit_session_count": 26,
+        "true_positive_session_count": 2,
+        "false_positive_session_count": 24,
+        "false_negative_session_count": 267,
+        "false_positive_hit_count": 26,
+        "false_positive_rate": 0.009884678747940691,
+        "precision": 0.07692307692307693,
+        "recall": 0.007434944237918215,
+        "f1": 0.013559322033898306,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [
+          "combined_2434",
+          "combined_2599"
+        ],
+        "sampled_false_positive_session_ids": [
+          "combined_104",
+          "combined_109",
+          "combined_114",
+          "combined_120",
+          "combined_121"
+        ]
+      },
+      "FOL-C5-S1": {
+        "fol_id": "FOL-C5-S1",
+        "hit_session_count": 0,
+        "true_positive_session_count": 0,
+        "false_positive_session_count": 0,
+        "false_negative_session_count": 269,
+        "false_positive_hit_count": 0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "labeled_scoring_available": true,
+        "sampled_false_negative_session_ids": [
+          "combined_2429",
+          "combined_2430",
+          "combined_2431",
+          "combined_2432",
+          "combined_2433"
+        ],
+        "sampled_true_positive_session_ids": [],
+        "sampled_false_positive_session_ids": []
+      }
+    }
+  },
+  "accepted_change_count": 2,
+  "rule_runs": [
+    {
+      "fol_id": "FOL-38-1",
+      "initial_rule_false_positive_score": {
+        "labeled_scoring_available": true,
+        "f1": 0.08200455580865602,
+        "precision": 0.10588235294117647,
+        "recall": 0.06691449814126393,
+        "false_positive_session_count": 152,
+        "false_positive_rate": 0.06260296540362438,
+        "hit_session_count": 170,
+        "hit_count": 176
+      },
+      "final_rule_false_positive_score": {
+        "labeled_scoring_available": true,
+        "f1": 0.0942622950819672,
+        "precision": 0.1050228310502283,
+        "recall": 0.08550185873605948,
+        "false_positive_session_count": 196,
+        "false_positive_rate": 0.08072487644151564,
+        "hit_session_count": 219,
+        "hit_count": 229
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "before_rule_false_positive_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.08200455580865602,
+            "precision": 0.10588235294117647,
+            "recall": 0.06691449814126393,
+            "false_positive_session_count": 152,
+            "false_positive_rate": 0.06260296540362438,
+            "hit_session_count": 170,
+            "hit_count": 176
+          },
+          "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。",
+          "evaluated_candidates": [
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "narrow_api_scope",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": {
+                  "context_api_scope": [
+                    "GET /space/membership/invite",
+                    "GET /space/manage/member",
+                    "GET /space/manage/member/index"
+                  ]
+                },
+                "modified_expression": null,
+                "rationale": "移除通用查询接口 `GET /space/space`，避免将正常的业务上下文切换（多 Space 导航）误判为越权风险，仅保留与邀请操作强相关的管理接口作为上下文依据，从而降低误报。",
+                "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。"
+              },
+              "accepted": true,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.08200455580865602,
+                "precision": 0.10588235294117647,
+                "recall": 0.06691449814126393,
+                "false_positive_session_count": 152,
+                "false_positive_rate": 0.06260296540362438,
+                "hit_session_count": 170,
+                "hit_count": 176
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.30864197530864196,
+                "precision": 0.2023121387283237,
+                "recall": 0.6505576208178439,
+                "false_positive_session_count": 690,
+                "false_positive_rate": 0.2841845140032949,
+                "hit_session_count": 865,
+                "hit_count": 1955
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              }
+            },
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": null,
+                "modified_expression": {
+                  "detector": {
+                    "checks": [
+                      "target_value_switch",
+                      "context_missing",
+                      "not_from_context",
+                      "status_code_check"
+                    ]
+                  }
+                },
+                "rationale": "在 detector 的 checks 列表中显式增加 `status_code_check`，确保规则仅在请求响应成功（2xx）时触发，修正对失败请求（如 400 Bad Request）产生误报的问题。",
+                "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。"
+              },
+              "accepted": false,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.08200455580865602,
+                "precision": 0.10588235294117647,
+                "recall": 0.06691449814126393,
+                "false_positive_session_count": 152,
+                "false_positive_rate": 0.06260296540362438,
+                "hit_session_count": 170,
+                "hit_count": 176
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "false_positive_session_count": 0,
+                "false_positive_rate": 0.0,
+                "hit_session_count": 0,
+                "hit_count": 0
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.30864197530864196,
+                "precision": 0.2023121387283237,
+                "recall": 0.6505576208178439,
+                "false_positive_session_count": 690,
+                "false_positive_rate": 0.2841845140032949,
+                "hit_session_count": 865,
+                "hit_count": 1955
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.315893385982231,
+                "precision": 0.21505376344086022,
+                "recall": 0.5947955390334573,
+                "false_positive_session_count": 584,
+                "false_positive_rate": 0.24052718286655683,
+                "hit_session_count": 744,
+                "hit_count": 1779
+              }
+            }
+          ],
+          "accepted": {
+            "round": 1,
+            "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。",
+            "candidate": {
+              "fol_id": "FOL-38-1",
+              "action": "narrow_api_scope",
+              "expression_index": 1,
+              "new_threshold": null,
+              "new_dimension": "",
+              "modified_scope": {
+                "context_api_scope": [
+                  "GET /space/membership/invite",
+                  "GET /space/manage/member",
+                  "GET /space/manage/member/index"
+                ]
+              },
+              "modified_expression": null,
+              "rationale": "移除通用查询接口 `GET /space/space`，避免将正常的业务上下文切换（多 Space 导航）误判为越权风险，仅保留与邀请操作强相关的管理接口作为上下文依据，从而降低误报。",
+              "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。"
+            },
+            "before_rule_score": {
+              "labeled_scoring_available": true,
+              "f1": 0.08200455580865602,
+              "precision": 0.10588235294117647,
+              "recall": 0.06691449814126393,
+              "false_positive_session_count": 152,
+              "false_positive_rate": 0.06260296540362438,
+              "hit_session_count": 170,
+              "hit_count": 176
+            },
+            "after_rule_score": {
+              "labeled_scoring_available": true,
+              "f1": 0.09406952965235171,
+              "precision": 0.10454545454545454,
+              "recall": 0.08550185873605948,
+              "false_positive_session_count": 197,
+              "false_positive_rate": 0.08113673805601318,
+              "hit_session_count": 220,
+              "hit_count": 230
+            }
+          }
+        },
+        {
+          "round": 2,
+          "before_rule_false_positive_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.09406952965235171,
+            "precision": 0.10454545454545454,
+            "recall": 0.08550185873605948,
+            "false_positive_session_count": 197,
+            "false_positive_rate": 0.08113673805601318,
+            "hit_session_count": 220,
+            "hit_count": 230
+          },
+          "false_positive_reason": "规则强制要求邀请操作必须具备显式的上下文加载记录（`require_context: true`），且上下文 API 范围仅限于特定的邀请管理页面。分析正常样本（如 `combined_12`, `combined_20`）发现，合法用户可以在未加载特定“邀请页面”的情况下直接发起邀请（例如通过快捷入口、书签或缓存状态），导致规则因“参数上下文缺失”而误报。此外，上下文范围排除了通用的空间浏览接口（`GET /space/space`），导致用户在浏览空间后直接邀请该空间成员的正常行为无法被识别为合法上下文。",
+          "evaluated_candidates": [
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": null,
+                "modified_expression": {
+                  "dimension": "parameter_consistency",
+                  "scope": {
+                    "target_api_scope": [
+                      "POST /space/membership/invite"
+                    ],
+                    "context_api_scope": [
+                      "GET /space/membership/invite",
+                      "GET /space/manage/member",
+                      "GET /space/manage/member/index"
+                    ],
+                    "parameters": [
+                      "cguid"
+                    ],
+                    "parameter_occurrences": [
+                      {
+                        "parameter": "cguid",
+                        "api": "GET /space/membership/invite",
+                        "location": "query",
+                        "role": "context_source"
+                      },
+                      {
+                        "parameter": "cguid",
+                        "api": "POST /space/membership/invite",
+                        "location": "query",
+                        "role": "target_parameter"
+                      }
+                    ],
+                    "context_binding": [
+                      {
+                        "source_api": "GET /space/membership/invite",
+                        "target_api": "POST /space/membership/invite",
+                        "parameter": "cguid",
+                        "relation": "同一对象"
+                      }
+                    ],
+                    "expected_source": "upstream_context_api",
+                    "status_code_constraints": {
+                      "target_status_classes": [
+                        "2xx"
+                      ]
+                    }
+                  },
+                  "detector": {
+                    "engine": "parameter_consistency",
+                    "checks": [
+                      "target_value_switch",
+                      "context_missing",
+                      "not_from_context"
+                    ],
+                    "parameters": [
+                      "cguid"
+                    ],
+                    "target_api_scope": [
+                      "POST /space/membership/invite"
+                    ],
+                    "context_api_scope": [
+                      "GET /space/membership/invite",
+                      "GET /space/manage/member",
+                      "GET /space/manage/member/index"
+                    ],
+                    "dependency_relation": "bound_to_upstream_context",
+                    "expected_source": "upstream_context_api",
+                    "require_context": false,
+                    "min_distinct_target_values": 2,
+                    "ignore_values": [
+                      "",
+                      "null",
+                      "undefined"
+                    ],
+                    "api_match": "exact",
+                    "status_code_constraints": {
+                      "target_status_classes": [
+                        "2xx"
+                      ]
+                    }
+                  },
+                  "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /space/membership/invite\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"邀请接口 cguid 参数脱离前置上下文导致的对象级越权风险\"))",
+                  "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+                },
+                "rationale": "将检测器中的 `require_context` 设置为 `false`，允许规则在没有显式前置页面加载的情况下放行。这解决了正常用户通过快捷方式或非标准导航路径发起邀请时触发的“参数上下文缺失”误报，同时保留了核心检测能力：如果存在上下文且参数不一致（例如在 Space A 的页面邀请 Space B），规则仍会触发。",
+                "false_positive_reason": "规则强制要求邀请操作必须具备显式的上下文加载记录（`require_context: true`），且上下文 API 范围仅限于特定的邀请管理页面。分析正常样本（如 `combined_12`, `combined_20`）发现，合法用户可以在未加载特定“邀请页面”的情况下直接发起邀请（例如通过快捷入口、书签或缓存状态），导致规则因“参数上下文缺失”而误报。此外，上下文范围排除了通用的空间浏览接口（`GET /space/space`），导致用户在浏览空间后直接邀请该空间成员的正常行为无法被识别为合法上下文。"
+              },
+              "accepted": false,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              }
+            },
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": {
+                  "context_api_scope": [
+                    "GET /space/membership/invite",
+                    "GET /space/manage/member",
+                    "GET /space/manage/member/index",
+                    "GET /space/space"
+                  ]
+                },
+                "modified_expression": {
+                  "dimension": "parameter_consistency",
+                  "scope": {
+                    "target_api_scope": [
+                      "POST /space/membership/invite"
+                    ],
+                    "context_api_scope": [
+                      "GET /space/membership/invite",
+                      "GET /space/manage/member",
+                      "GET /space/manage/member/index",
+                      "GET /space/space"
+                    ],
+                    "parameters": [
+                      "cguid"
+                    ],
+                    "expected_source": "upstream_context_api",
+                    "status_code_constraints": {
+                      "target_status_classes": [
+                        "2xx"
+                      ]
+                    }
+                  },
+                  "detector": {
+                    "engine": "parameter_consistency",
+                    "checks": [
+                      "target_value_switch",
+                      "context_missing",
+                      "not_from_context"
+                    ],
+                    "parameters": [
+                      "cguid"
+                    ],
+                    "target_api_scope": [
+                      "POST /space/membership/invite"
+                    ],
+                    "context_api_scope": [
+                      "GET /space/membership/invite",
+                      "GET /space/manage/member",
+                      "GET /space/manage/member/index",
+                      "GET /space/space"
+                    ],
+                    "dependency_relation": "bound_to_upstream_context",
+                    "expected_source": "upstream_context_api",
+                    "require_context": false,
+                    "min_distinct_target_values": 2,
+                    "ignore_values": [
+                      "",
+                      "null",
+                      "undefined"
+                    ],
+                    "api_match": "exact",
+                    "status_code_constraints": {
+                      "target_status_classes": [
+                        "2xx"
+                      ]
+                    }
+                  },
+                  "formula": "∀s (ParameterFlowContext(s,{C1},{T1},{P1},\"bound_to_upstream_context\") ∧ ParameterAppearsOrDerived(s,{T1},{P1}) ∧ ¬ParameterConsistentWithContext(s,{C1},{T1},{P1},\"upstream_context_api\") ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /space/membership/invite\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"邀请接口 cguid 参数脱离前置上下文导致的对象级越权风险\"))",
+                  "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+                },
+                "rationale": "在放宽 `require_context` 的基础上，将通用的空间浏览接口 `GET /space/space` 恢复到上下文范围。这能覆盖“浏览 Space A -> 邀请进入 Space A”的正常业务链路，提升规则对正常行为的识别率。同时，配合 `require_context: false`，即使没有加载该页面也能放行，既减少了误报，又保持了对“浏览 Space A -> 邀请进入 Space B（参数不一致）”攻击场景的检测能力。",
+                "false_positive_reason": "规则强制要求邀请操作必须具备显式的上下文加载记录（`require_context: true`），且上下文 API 范围仅限于特定的邀请管理页面。分析正常样本（如 `combined_12`, `combined_20`）发现，合法用户可以在未加载特定“邀请页面”的情况下直接发起邀请（例如通过快捷入口、书签或缓存状态），导致规则因“参数上下文缺失”而误报。此外，上下文范围排除了通用的空间浏览接口（`GET /space/space`），导致用户在浏览空间后直接邀请该空间成员的正常行为无法被识别为合法上下文。"
+              },
+              "accepted": false,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.08200455580865602,
+                "precision": 0.10588235294117647,
+                "recall": 0.06691449814126393,
+                "false_positive_session_count": 152,
+                "false_positive_rate": 0.06260296540362438,
+                "hit_session_count": 170,
+                "hit_count": 176
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.30864197530864196,
+                "precision": 0.2023121387283237,
+                "recall": 0.6505576208178439,
+                "false_positive_session_count": 690,
+                "false_positive_rate": 0.2841845140032949,
+                "hit_session_count": 865,
+                "hit_count": 1955
+              }
+            }
+          ],
+          "accepted": null
+        },
+        {
+          "round": 3,
+          "before_rule_false_positive_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.09406952965235171,
+            "precision": 0.10454545454545454,
+            "recall": 0.08550185873605948,
+            "false_positive_session_count": 197,
+            "false_positive_rate": 0.08113673805601318,
+            "hit_session_count": 220,
+            "hit_count": 230
+          },
+          "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。",
+          "evaluated_candidates": [
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": {
+                  "context_api_scope": [
+                    "GET /space/membership/invite",
+                    "GET /space/manage/member",
+                    "GET /space/manage/member/index",
+                    "GET /space/space",
+                    "GET /user/profile/about"
+                  ]
+                },
+                "modified_expression": null,
+                "rationale": "扩展上下文 API 范围以包含 Space 主页（GET /space/space）和用户资料页（GET /user/profile/about），这些接口在正常业务流中承载 cguid 参数并建立授权上下文。此举能消除 combined_27 和 combined_20 等典型误报，使规则与 normal_parameter_sequence 中描述的正常业务流一致，且不改变对无上下文攻击的检测能力。",
+                "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。"
+              },
+              "accepted": false,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.0821917808219178,
+                "precision": 0.10650887573964497,
+                "recall": 0.06691449814126393,
+                "false_positive_session_count": 151,
+                "false_positive_rate": 0.06219110378912685,
+                "hit_session_count": 169,
+                "hit_count": 175
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.30864197530864196,
+                "precision": 0.2023121387283237,
+                "recall": 0.6505576208178439,
+                "false_positive_session_count": 690,
+                "false_positive_rate": 0.2841845140032949,
+                "hit_session_count": 865,
+                "hit_count": 1954
+              }
+            },
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": {
+                  "context_api_scope": [
+                    "GET /space/membership/invite",
+                    "GET /space/manage/member",
+                    "GET /space/manage/member/index",
+                    "GET /space/space"
+                  ]
+                },
+                "modified_expression": null,
+                "rationale": "仅添加高频入口 GET /space/space。该接口是用户浏览 Space 的主要入口，通常包含 cguid 参数。添加此接口能覆盖 combined_27 等场景，减少因导航路径差异导致的误报，属于最小化修改，风险可控。",
+                "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。"
+              },
+              "accepted": false,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.08200455580865602,
+                "precision": 0.10588235294117647,
+                "recall": 0.06691449814126393,
+                "false_positive_session_count": 152,
+                "false_positive_rate": 0.06260296540362438,
+                "hit_session_count": 170,
+                "hit_count": 176
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.30864197530864196,
+                "precision": 0.2023121387283237,
+                "recall": 0.6505576208178439,
+                "false_positive_session_count": 690,
+                "false_positive_rate": 0.2841845140032949,
+                "hit_session_count": 865,
+                "hit_count": 1955
+              }
+            },
+            {
+              "candidate": {
+                "fol_id": "FOL-38-1",
+                "action": "replace_expression",
+                "expression_index": 1,
+                "new_threshold": null,
+                "new_dimension": "",
+                "modified_scope": {
+                  "context_api_scope": [
+                    "GET /space/membership/invite",
+                    "GET /space/manage/member",
+                    "GET /space/manage/member/index",
+                    "GET /user/profile/about"
+                  ]
+                },
+                "modified_expression": null,
+                "rationale": "仅添加用户资料页 GET /user/profile/about。针对 combined_20 中显示的通过用户资料页发起邀请的正常业务流进行修正，解决特定上下文缺失导致的误报。",
+                "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。"
+              },
+              "accepted": true,
+              "before_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.09406952965235171,
+                "precision": 0.10454545454545454,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 197,
+                "false_positive_rate": 0.08113673805601318,
+                "hit_session_count": 220,
+                "hit_count": 230
+              },
+              "after_rule_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.0942622950819672,
+                "precision": 0.1050228310502283,
+                "recall": 0.08550185873605948,
+                "false_positive_session_count": 196,
+                "false_positive_rate": 0.08072487644151564,
+                "hit_session_count": 219,
+                "hit_count": 229
+              },
+              "before_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2009
+              },
+              "after_full_score": {
+                "labeled_scoring_available": true,
+                "f1": 0.3027210884353741,
+                "precision": 0.19625137816979052,
+                "recall": 0.6617100371747212,
+                "false_positive_session_count": 729,
+                "false_positive_rate": 0.3002471169686985,
+                "hit_session_count": 907,
+                "hit_count": 2008
+              }
+            }
+          ],
+          "accepted": {
+            "round": 3,
+            "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。",
+            "candidate": {
+              "fol_id": "FOL-38-1",
+              "action": "replace_expression",
+              "expression_index": 1,
+              "new_threshold": null,
+              "new_dimension": "",
+              "modified_scope": {
+                "context_api_scope": [
+                  "GET /space/membership/invite",
+                  "GET /space/manage/member",
+                  "GET /space/manage/member/index",
+                  "GET /user/profile/about"
+                ]
+              },
+              "modified_expression": null,
+              "rationale": "仅添加用户资料页 GET /user/profile/about。针对 combined_20 中显示的通过用户资料页发起邀请的正常业务流进行修正，解决特定上下文缺失导致的误报。",
+              "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。"
+            },
+            "before_rule_score": {
+              "labeled_scoring_available": true,
+              "f1": 0.09406952965235171,
+              "precision": 0.10454545454545454,
+              "recall": 0.08550185873605948,
+              "false_positive_session_count": 197,
+              "false_positive_rate": 0.08113673805601318,
+              "hit_session_count": 220,
+              "hit_count": 230
+            },
+            "after_rule_score": {
+              "labeled_scoring_available": true,
+              "f1": 0.0942622950819672,
+              "precision": 0.1050228310502283,
+              "recall": 0.08550185873605948,
+              "false_positive_session_count": 196,
+              "false_positive_rate": 0.08072487644151564,
+              "hit_session_count": 219,
+              "hit_count": 229
+            }
+          }
+        }
+      ],
+      "accepted_changes": [
+        {
+          "round": 1,
+          "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。",
+          "candidate": {
+            "fol_id": "FOL-38-1",
+            "action": "narrow_api_scope",
+            "expression_index": 1,
+            "new_threshold": null,
+            "new_dimension": "",
+            "modified_scope": {
+              "context_api_scope": [
+                "GET /space/membership/invite",
+                "GET /space/manage/member",
+                "GET /space/manage/member/index"
+              ]
+            },
+            "modified_expression": null,
+            "rationale": "移除通用查询接口 `GET /space/space`，避免将正常的业务上下文切换（多 Space 导航）误判为越权风险，仅保留与邀请操作强相关的管理接口作为上下文依据，从而降低误报。",
+            "false_positive_reason": "规则将通用导航接口 `GET /space/space` 纳入上下文范围，当用户正常进行多 Space 切换或多标签页操作时（例如先浏览 Space A，随后邀请 Space B），规则误判为参数不一致；此外，规则在 Session combined_38 中对响应状态码为 400 的失败请求触发告警，表明检测逻辑未能正确校验请求成功状态。"
+          },
+          "before_rule_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.08200455580865602,
+            "precision": 0.10588235294117647,
+            "recall": 0.06691449814126393,
+            "false_positive_session_count": 152,
+            "false_positive_rate": 0.06260296540362438,
+            "hit_session_count": 170,
+            "hit_count": 176
+          },
+          "after_rule_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.09406952965235171,
+            "precision": 0.10454545454545454,
+            "recall": 0.08550185873605948,
+            "false_positive_session_count": 197,
+            "false_positive_rate": 0.08113673805601318,
+            "hit_session_count": 220,
+            "hit_count": 230
+          }
+        },
+        {
+          "round": 3,
+          "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。",
+          "candidate": {
+            "fol_id": "FOL-38-1",
+            "action": "replace_expression",
+            "expression_index": 1,
+            "new_threshold": null,
+            "new_dimension": "",
+            "modified_scope": {
+              "context_api_scope": [
+                "GET /space/membership/invite",
+                "GET /space/manage/member",
+                "GET /space/manage/member/index",
+                "GET /user/profile/about"
+              ]
+            },
+            "modified_expression": null,
+            "rationale": "仅添加用户资料页 GET /user/profile/about。针对 combined_20 中显示的通过用户资料页发起邀请的正常业务流进行修正，解决特定上下文缺失导致的误报。",
+            "false_positive_reason": "规则的 context_api_scope 定义过于狭窄，仅包含特定的成员管理/邀请页面接口（如 GET /space/membership/invite），却排除了用户获取 Space ID 的最常见入口——Space 主页（GET /space/space）和用户资料页（GET /user/profile/about）。在 normal_hit_sessions 样本（如 combined_27, combined_20）中，用户通过浏览 Space 主页或用户资料页获取 cguid 上下文，随后发起邀请请求，参数来源合法，但规则因未将这些页面纳入上下文范围而误报为 parameter_context_missing。"
+          },
+          "before_rule_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.09406952965235171,
+            "precision": 0.10454545454545454,
+            "recall": 0.08550185873605948,
+            "false_positive_session_count": 197,
+            "false_positive_rate": 0.08113673805601318,
+            "hit_session_count": 220,
+            "hit_count": 230
+          },
+          "after_rule_score": {
+            "labeled_scoring_available": true,
+            "f1": 0.0942622950819672,
+            "precision": 0.1050228310502283,
+            "recall": 0.08550185873605948,
+            "false_positive_session_count": 196,
+            "false_positive_rate": 0.08072487644151564,
+            "hit_session_count": 219,
+            "hit_count": 229
+          }
+        }
+      ],
+      "stopped_reason": "max_iterations_reached"
+    }
+  ],
+  "stopped_reason": "completed"
+}

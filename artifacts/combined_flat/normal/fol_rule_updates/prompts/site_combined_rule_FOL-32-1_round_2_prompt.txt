@@ -1,0 +1,2508 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [
+    {
+      "candidate": {
+        "fol_id": "FOL-32-1",
+        "action": "raise_threshold",
+        "expression_index": 1,
+        "new_threshold": 3,
+        "new_dimension": "",
+        "modified_scope": {},
+        "modified_expression": "",
+        "rationale": "正常用户极少在单次会话中频繁切换超过 2 个不同的关注对象（通常为关注一人、取关一人的二元操作）。将最小不同值阈值从 2 提高到 3，可以有效排除“关注 A + 取关 B”这类正常业务行为引起的误报，同时保留对批量枚举或篡改攻击（通常涉及大量不同 ID）的检测能力。",
+        "false_positive_reason": "该规则将 'POST /user/profile/follow' 和 'POST /user/profile/unfollow' 两个 API 归入同一 Scope 进行参数一致性检测。正常业务中，用户常在单次会话中执行“关注用户 A，取关用户 B”的操作，这导致 'cguid' 参数出现两个不同的值（分别对应关注对象和取关对象）。规则当前的 'DistinctTargetParameterValuesAtLeast(..., 2)' 阈值过于敏感，误将这种对不同对象的正常社交操作判定为参数篡改或越权风险。"
+      },
+      "accepted": true,
+      "before_rule_score": [
+        336,
+        336
+      ],
+      "after_rule_score": [
+        71,
+        71
+      ],
+      "before_full_score": [
+        1100,
+        3527
+      ],
+      "after_full_score": [
+        1100,
+        3262
+      ]
+    }
+  ],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-32-1",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 71,
+      "false_positive_hit_count": 71,
+      "false_positive_rate": 0.029242174629324547
+    },
+    "rule": {
+      "fol_id": "FOL-32-1",
+      "scenario_title": "社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险",
+      "security_type": "BOLA",
+      "risk_level": "high",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "GET /user/people (获取可选用户列表及ID)",
+              "POST /user/profile/follow (提交选定的cguid)",
+              "GET /user/account/edit",
+              "GET /user/account/edit-settings",
+              "GET /user/people",
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow",
+              "GET /user/account/change-email",
+              "GET /user/account/change-username"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/follow",
+                "location": "query",
+                "role": "target_parameter"
+              },
+              {
+                "parameter": "cguid",
+                "api": "POST /user/profile/unfollow",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [
+              "UUID"
+            ],
+            "dropped_unverified_parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /user/people",
+                "location": "response_or_business_context",
+                "role": "context_source"
+              }
+            ],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/follow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合"
+              },
+              {
+                "source_api": "GET /user/people",
+                "target_api": "POST /user/profile/unfollow",
+                "parameter": "cguid",
+                "source_parameter": "cguid",
+                "target_parameter": "cguid",
+                "relation": "同一对象",
+                "explanation": "取关操作的目标用户ID应来源于用户当前的关注列表或搜索结果"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "cguid 参数值与前置搜索/列表接口返回的用户ID集合不一致",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1",
+              "T2"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow",
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+            },
+            "min_distinct_target_values": 3
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "POST /user/profile/follow",
+              "POST /user/profile/unfollow"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "object_context_status_codes": [
+                "404"
+              ],
+              "target_api_scope": [
+                "POST /user/profile/follow",
+                "POST /user/profile/unfollow"
+              ],
+              "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "POST /user/profile/follow"
+                },
+                {
+                  "symbol": "T2",
+                  "value": "POST /user/profile/unfollow"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_1533",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "steps": [
+                6,
+                7,
+                14,
+                15
+              ],
+              "examples": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "from_step": 7,
+                  "to_step": 14,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 14,
+                  "to_step": 15,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 7,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 14,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  },
+                  {
+                    "step": 15,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "from_step": 7,
+                    "to_step": 14,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "from_step": 14,
+                    "to_step": 15,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /user/profile/follow",
+                    "POST /user/profile/unfollow"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 6,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 7,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 14,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            },
+            {
+              "step": 15,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "from_step": 7,
+              "to_step": 14,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "from_step": 14,
+              "to_step": 15,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 15,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "from_step": 7,
+                  "to_step": 14,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 14,
+                  "to_step": 15,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow"
+        ],
+        "raw_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people?keyword=Support",
+          "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+        ]
+      },
+      {
+        "session_id": "combined_1545",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "steps": [
+                2,
+                4,
+                12,
+                14
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 2,
+                  "to_step": 4,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "from_step": 4,
+                  "to_step": 12,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                  },
+                  {
+                    "step": 4,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 12,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  },
+                  {
+                    "step": 14,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "from_step": 2,
+                    "to_step": 4,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "from_step": 4,
+                    "to_step": 12,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /user/profile/follow",
+                    "POST /user/profile/unfollow"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+            },
+            {
+              "step": 4,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 12,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            },
+            {
+              "step": 14,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "from_step": 2,
+              "to_step": 4,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "from_step": 4,
+              "to_step": 12,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 4,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 12,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 14,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 2,
+                  "to_step": 4,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "from_step": 4,
+                  "to_step": 12,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/account/edit",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "GET /user/people"
+        ],
+        "raw_sequence": [
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/account/edit",
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "GET /user/people"
+        ]
+      },
+      {
+        "session_id": "combined_1547",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "steps": [
+                6,
+                7,
+                9,
+                10
+              ],
+              "examples": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "from_step": 9,
+                  "to_step": 10,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "d9c8125d-8857-4ae2-8885-e01f51231df3"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  },
+                  {
+                    "step": 7,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                  },
+                  {
+                    "step": 9,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                  },
+                  {
+                    "step": 10,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                    "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "from_step": 7,
+                    "to_step": 9,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "from_step": 9,
+                    "to_step": 10,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /user/profile/follow",
+                    "POST /user/profile/unfollow"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 6,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            },
+            {
+              "step": 7,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+            },
+            {
+              "step": 9,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            },
+            {
+              "step": 10,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+              "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "from_step": 7,
+              "to_step": 9,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "from_step": 9,
+              "to_step": 10,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "d9c8125d-8857-4ae2-8885-e01f51231df3"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "request": "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "d9c8125d-8857-4ae2-8885-e01f51231df3",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "from_step": 9,
+                  "to_step": 10,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow"
+        ],
+        "raw_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "POST /user/profile/follow?cguid=d9c8125d-8857-4ae2-8885-e01f51231df3",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+        ]
+      },
+      {
+        "session_id": "combined_1549",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+              ],
+              "steps": [
+                6,
+                7,
+                9,
+                10
+              ],
+              "examples": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 6,
+                  "to_step": 7,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                  },
+                  {
+                    "step": 7,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                  },
+                  {
+                    "step": 9,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 10,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "from_step": 6,
+                    "to_step": 7,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "from_step": 7,
+                    "to_step": 9,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /user/profile/follow",
+                    "POST /user/profile/unfollow"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 6,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+            },
+            {
+              "step": 7,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            },
+            {
+              "step": 9,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 10,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "from_step": 6,
+              "to_step": 7,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "from_step": 7,
+              "to_step": 9,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 9,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 10,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 6,
+                  "to_step": 7,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow"
+        ],
+        "raw_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+          "POST /user/profile/unfollow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+        ]
+      },
+      {
+        "session_id": "combined_1551",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1,T2},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1,T2},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"POST /user/profile/follow\",\"POST /user/profile/unfollow\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"high\",\"社交关注操作中 cguid 参数可能被篡改导致的对象级越权风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 4,
+              "values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "steps": [
+                6,
+                7,
+                16,
+                17,
+                21,
+                22,
+                26,
+                27
+              ],
+              "examples": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 16,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 17,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 21,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 22,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 26,
+                  "api": "POST /user/profile/unfollow",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 27,
+                  "api": "POST /user/profile/follow",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 16,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 17,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 21,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 22,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 26,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 27,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 7,
+                  "to_step": 16,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 16,
+                  "to_step": 17,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 17,
+                  "to_step": 21,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "from_step": 21,
+                  "to_step": 22,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 22,
+                  "to_step": 26,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "from_step": 26,
+                  "to_step": 27,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 6,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                  },
+                  {
+                    "step": 7,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "request": "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                  },
+                  {
+                    "step": 16,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 17,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                  },
+                  {
+                    "step": 21,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 22,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                  },
+                  {
+                    "step": 26,
+                    "api": "POST /user/profile/unfollow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                  },
+                  {
+                    "step": 27,
+                    "api": "POST /user/profile/follow",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "from_step": 7,
+                    "to_step": 16,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "from_step": 16,
+                    "to_step": 17,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                    "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "from_step": 17,
+                    "to_step": 21,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "from_step": 21,
+                    "to_step": 22,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                    "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "from_step": 22,
+                    "to_step": 26,
+                    "from_api": "POST /user/profile/follow",
+                    "to_api": "POST /user/profile/unfollow",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                    "to_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                    "from_step": 26,
+                    "to_step": 27,
+                    "from_api": "POST /user/profile/unfollow",
+                    "to_api": "POST /user/profile/follow",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "POST /user/profile/follow",
+                    "POST /user/profile/unfollow"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "状态码分析\nresponse_or_business_context\n关注操作的目标用户ID应直接来源于搜索/列表接口返回的可见用户集合\ncguid 参数被替换为枚举值、猜测值或非当前上下文返回的 UUID\ncguid 参数值与前置搜索/列表接口返回的用户ID集合不一致\n26\n所有请求状态码均为 0（未知），无法确认请求是否成功处理，导致风险确认缺乏状态码支撑\n无认证/权限检查接口状态码\n关注/取关接口状态码缺失，无法判断是否返回 2xx（攻击成功）或 403/404（已防御）\n由于缺乏状态码证据，无法判断攻击是否实际生效，但参数流动路径暴露出的攻击面清晰，故维持较高风险等级并标记需确认"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 6,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+            },
+            {
+              "step": 7,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "request": "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+            },
+            {
+              "step": 16,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 17,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+            },
+            {
+              "step": 21,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 22,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+            },
+            {
+              "step": 26,
+              "api": "POST /user/profile/unfollow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+            },
+            {
+              "step": 27,
+              "api": "POST /user/profile/follow",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "from_step": 7,
+              "to_step": 16,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "from_step": 16,
+              "to_step": 17,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+              "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "from_step": 17,
+              "to_step": 21,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "from_step": 21,
+              "to_step": 22,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+              "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "from_step": 22,
+              "to_step": 26,
+              "from_api": "POST /user/profile/follow",
+              "to_api": "POST /user/profile/unfollow",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+              "to_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+              "from_step": 26,
+              "to_step": 27,
+              "from_api": "POST /user/profile/unfollow",
+              "to_api": "POST /user/profile/follow",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "86c141b9-b1d3-4193-a270-d200603fca48",
+                "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 6,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 7,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                },
+                {
+                  "step": 16,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 17,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "request": "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48"
+                },
+                {
+                  "step": 21,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 22,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "request": "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882"
+                },
+                {
+                  "step": 26,
+                  "api": "POST /user/profile/unfollow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "request": "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85"
+                },
+                {
+                  "step": 27,
+                  "api": "POST /user/profile/follow",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "request": "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 7,
+                  "to_step": 16,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "from_step": 16,
+                  "to_step": 17,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "86c141b9-b1d3-4193-a270-d200603fca48",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 17,
+                  "to_step": 21,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "from_step": 21,
+                  "to_step": 22,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+                  "to_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "from_step": 22,
+                  "to_step": 26,
+                  "from_api": "POST /user/profile/follow",
+                  "to_api": "POST /user/profile/unfollow",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+                  "to_value": "adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+                  "from_step": 26,
+                  "to_step": 27,
+                  "from_api": "POST /user/profile/unfollow",
+                  "to_api": "POST /user/profile/follow",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow",
+          "POST /user/profile/unfollow",
+          "GET /user/people",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow",
+          "GET /user/account/edit-settings",
+          "GET /user/account/edit",
+          "GET /user/people",
+          "POST /user/profile/unfollow",
+          "POST /user/profile/follow",
+          "GET /user/account/change-email",
+          "GET /user/account/change-username",
+          "GET /user/people"
+        ],
+        "raw_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "POST /user/profile/unfollow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "GET /user/people",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/account/edit-settings",
+          "GET /user/account/change-username",
+          "GET /user/account/change-email",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "POST /user/profile/follow?cguid=86c141b9-b1d3-4193-a270-d200603fca48",
+          "GET /user/account/edit",
+          "GET /user/account/edit-settings",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "POST /user/profile/follow?cguid=98cb7660-54d3-4fbc-a874-8e0f7b8f5882",
+          "GET /user/account/edit-settings",
+          "GET /user/account/edit",
+          "GET /user/people",
+          "POST /user/profile/unfollow?cguid=9ffc5154-a1d1-4c99-af07-fb9b825e9a85",
+          "POST /user/profile/follow?cguid=adb1f1ce-3f99-49a9-a4d6-9a287e60b5f4",
+          "GET /user/account/change-email",
+          "GET /user/account/change-username",
+          "GET /user/people"
+        ]
+      }
+    ]
+  }
+}

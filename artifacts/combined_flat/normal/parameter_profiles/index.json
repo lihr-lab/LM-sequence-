@@ -1,0 +1,20 @@
+{
+  "input": "artifacts\\combined_flat\\normal\\request_line_sequences\\normal_request_lines.jsonl",
+  "output_dir": "artifacts\\combined_flat\\normal\\parameter_profiles",
+  "api_document_dir": "artifacts\\combined_flat\\normal\\API_document",
+  "generate_openapi_llm": false,
+  "max_profile_paths": 0,
+  "max_samples_per_path": 40,
+  "max_openapi_paths": 50,
+  "skip_existing_openapi_paths": true,
+  "site_count": 1,
+  "sites": [
+    {
+      "site_id": "combined",
+      "total_records": 25313,
+      "path_count": 41,
+      "profile_file": "artifacts\\combined_flat\\normal\\parameter_profiles\\site_combined_parameter_profile.json",
+      "openapi_file": ""
+    }
+  ]
+}

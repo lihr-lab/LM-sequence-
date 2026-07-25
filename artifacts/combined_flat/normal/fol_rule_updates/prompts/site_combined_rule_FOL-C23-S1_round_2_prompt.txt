@@ -1,0 +1,2144 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [
+    {
+      "candidate": {
+        "fol_id": "FOL-C23-S1",
+        "action": "raise_threshold",
+        "expression_index": 1,
+        "new_threshold": 3,
+        "modified_scope": null,
+        "new_dimension": "",
+        "modified_expression": null,
+        "rationale": "将最小不重复参数值阈值从 2 提升至 3。正常用户通常仅在少数几个空间（如个人空间和当前工作空间）间切换，阈值 2 极易覆盖此类正常行为。提升至 3 可过滤掉绝大多数双空间切换的正常业务，同时保留对批量枚举攻击（通常涉及大量 ID）的检测能力。",
+        "false_positive_reason": "规则 FOL-C23-S1 在正常样本中产生大量误报，核心原因是检测器配置了 `require_context: false` 且 `context_api_scope` 为空，导致只要用户在同一会话中对 `GET /space/space` 使用了 2 个以上的不同 `cguid` 且返回成功状态（或状态码缺失被忽略），即判定为风险。然而，正常业务中，用户完全有权访问多个不同的空间对象（如切换空间、访问不同群组），这种合法的“参数值切换”行为被错误地识别为越权尝试。例如，样本 combined_31 显示用户正常访问了两个空间（状态码 200），被误报为 BOLA。此外，部分样本（如 combined_180）状态码为 0（未知或被阻断），规则依然触发，说明状态码约束未生效或阈值过低。"
+      },
+      "accepted": true,
+      "before_rule_score": [
+        991,
+        991
+      ],
+      "after_rule_score": [
+        443,
+        443
+      ],
+      "before_full_score": [
+        1990,
+        7734
+      ],
+      "after_full_score": [
+        1990,
+        7186
+      ]
+    }
+  ],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-C23-S1",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 443,
+      "false_positive_hit_count": 443,
+      "false_positive_rate": 0.18245469522240526
+    },
+    "rule": {
+      "fol_id": "FOL-C23-S1",
+      "scenario_title": "空间对象 cguid 越权访问风险",
+      "security_type": "BOLA",
+      "risk_level": "medium",
+      "activity_abstraction": {
+        "activities": [],
+        "normal_chain": [],
+        "risky_chain": [],
+        "possible_violation_chain": [],
+        "missing_or_reordered_activity": "",
+        "missing_or_reordered_label": "",
+        "violated_order_constraint": "",
+        "sequence_subtype": "",
+        "authorization_precheck": {},
+        "risk_target_activity": "A_risk",
+        "related_apis": []
+      },
+      "logic_expressions": [
+        {
+          "dimension": "parameter_consistency",
+          "scope": {
+            "target_api_scope": [
+              "GET /space/space"
+            ],
+            "context_api_scope": [],
+            "normal_parameter_sequence": [
+              "GET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>",
+              "GET /space/spaces",
+              "GET /space/space",
+              "GET /user/account/edit",
+              "GET /user/account/change-username",
+              "GET /notification/list",
+              "GET /user/people"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_occurrences": [
+              {
+                "parameter": "cguid",
+                "api": "GET /space/space",
+                "location": "query",
+                "role": "target_parameter"
+              }
+            ],
+            "context_binding": [],
+            "dropped_unverified_parameters": [
+              "UUID"
+            ],
+            "dropped_unverified_parameter_occurrences": [],
+            "dropped_unverified_context_bindings": [
+              {
+                "source_api": "GET /space/spaces",
+                "target_api": "GET /space/space",
+                "parameter": "cguid",
+                "source_parameter": "unknown",
+                "target_parameter": "cguid",
+                "relation": "归属依赖",
+                "explanation": "正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。"
+              }
+            ],
+            "parameter_source_policy": "parameter_profile_parameter_names",
+            "expected_source": "target_api_observed_values",
+            "dependency_relation": "stable_within_target_api",
+            "risk_form": "请求中的 cguid 未在上游列表上下文中出现或来源不明",
+            "context_api_scope_symbols": [],
+            "target_api_scope_symbols": [
+              "T1"
+            ],
+            "parameter_symbols": [
+              "P1"
+            ],
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "GET /space/space"
+              ],
+              "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+            },
+            "min_distinct_target_values": 3
+          },
+          "detector": {
+            "engine": "parameter_consistency",
+            "checks": [
+              "target_value_switch"
+            ],
+            "parameters": [
+              "cguid"
+            ],
+            "parameter_aliases": {},
+            "target_api_scope": [
+              "GET /space/space"
+            ],
+            "context_api_scope": [],
+            "dependency_relation": "stable_within_target_api",
+            "expected_source": "target_api_observed_values",
+            "require_context": false,
+            "min_distinct_target_values": 2,
+            "ignore_values": [
+              "",
+              "null",
+              "undefined"
+            ],
+            "api_match": "exact",
+            "status_code_constraints": {
+              "target_activity": "A_risk",
+              "target_status_classes": [
+                "2xx"
+              ],
+              "target_api_scope": [
+                "GET /space/space"
+              ],
+              "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+            }
+          },
+          "symbol_bindings": {
+            "parameter": {
+              "context_api_scope": [],
+              "target_api_scope": [
+                {
+                  "symbol": "T1",
+                  "value": "GET /space/space"
+                }
+              ],
+              "parameters": [
+                {
+                  "symbol": "P1",
+                  "value": "cguid"
+                }
+              ]
+            }
+          },
+          "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+          "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_180",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 4,
+              "values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+              ],
+              "steps": [
+                2,
+                5,
+                7,
+                8,
+                10
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                  "request": "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                  "to_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "from_step": 5,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 8,
+                  "to_step": 10,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                    "request": "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694"
+                  },
+                  {
+                    "step": 5,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697"
+                  },
+                  {
+                    "step": 7,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699"
+                  },
+                  {
+                    "step": 8,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                  },
+                  {
+                    "step": 10,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                    "to_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "from_step": 2,
+                    "to_step": 5,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "to_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "from_step": 5,
+                    "to_step": 7,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 8,
+                    "to_step": 10,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "GET /space/space"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+              "request": "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694"
+            },
+            {
+              "step": 5,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697"
+            },
+            {
+              "step": 7,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699"
+            },
+            {
+              "step": 8,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+            },
+            {
+              "step": 10,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+              "to_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "from_step": 2,
+              "to_step": 5,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "to_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "from_step": 5,
+              "to_step": 7,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 8,
+              "to_step": 10,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "8c3e18b3-e7ca-430d-b663-4dc94f27b075"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                  "request": "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "request": "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c"
+                },
+                {
+                  "step": 10,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "8c3e18b3-e7ca-430d-b663-4dc94f27b075",
+                  "to_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "from_step": 5,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 8,
+                  "to_step": 10,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792694",
+          "GET /space/space/about?cguid=8c3e18b3-e7ca-430d-b663-4dc94f27b075&_pjax=%23layout-content&_=1744248792695",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792696",
+          "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744248792697",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792698",
+          "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c&_pjax=%23layout-content&_=1744248792699",
+          "GET /space/space?cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /space/spaces?_pjax=%23layout-content",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792700",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"JrFlbHZG71y5q8qSpt29x9cKsoUnQGHHj8ZrPQjD3_1P5UgoQjS2De_Ho6HJrdqqpmXGxGEHVaPskwgQe4CGyA==\",\"message\":\"安王若飞we\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=132",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=132",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"JrFlbHZG71y5q8qSpt29x9cKsoUnQGHHj8ZrPQjD3_1P5UgoQjS2De_Ho6HJrdqqpmXGxGEHVaPskwgQe4CGyA==\",\"message\":\"肥肉 过热的z\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}"
+        ]
+      },
+      {
+        "session_id": "combined_186",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "4678c675-294a-4e6e-8781-416bd624ab5c",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "steps": [
+                2,
+                5,
+                7
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "a7d44b2f-9725-4573-a922-7713508a53b9"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "a7d44b2f-9725-4573-a922-7713508a53b9"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                    "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733"
+                  },
+                  {
+                    "step": 5,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736"
+                  },
+                  {
+                    "step": 7,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                    "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "from_step": 2,
+                    "to_step": 5,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 5,
+                    "to_step": 7,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "GET /space/space"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+              "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733"
+            },
+            {
+              "step": 5,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736"
+            },
+            {
+              "step": 7,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+              "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "from_step": 2,
+              "to_step": 5,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 5,
+              "to_step": 7,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "4678c675-294a-4e6e-8781-416bd624ab5c",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "4678c675-294a-4e6e-8781-416bd624ab5c",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 5,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "POST /like/like/like",
+          "POST /like/like/unlike"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792732",
+          "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792733",
+          "GET /space/space/about?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744248792734",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792735",
+          "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792736",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792737",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792738",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"AD8DiVZFYCD_5-Mcbcd5qXHgLi1CK7UpX44SH-2OICJpay7NYjc5camLii8Ctx7EAI9abARsgU0823Eyns15Fw==\",\"message\":\"啊是个否 \",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=153&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"ymW5N6pvXpQhX6SoxsCPaSrkIJ2zIRSMi3YFFUfkzsWjMZRznh0HxXczzZupsOgEW4tU3PVmIOjoI2Y4NKeX8A==\",\"Post[message]\":\"如果v啊是个否\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=153",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=153"
+        ]
+      },
+      {
+        "session_id": "combined_188",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 4,
+              "values": [
+                "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                "4678c675-294a-4e6e-8781-416bd624ab5c"
+              ],
+              "steps": [
+                2,
+                4,
+                7,
+                9
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "01b90521-1f14-43bf-ade6-dcbcb816b064"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c"
+                },
+                {
+                  "step": 9,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "request": "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750"
+                },
+                {
+                  "step": 9,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "request": "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 2,
+                  "to_step": 4,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "from_step": 4,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "to_value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "4678c675-294a-4e6e-8781-416bd624ab5c"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "4678c675-294a-4e6e-8781-416bd624ab5c"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                    "request": "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745"
+                  },
+                  {
+                    "step": 4,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747"
+                  },
+                  {
+                    "step": 7,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750"
+                  },
+                  {
+                    "step": 9,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                    "request": "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 2,
+                    "to_step": 4,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "from_step": 4,
+                    "to_step": 7,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                    "to_value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                    "from_step": 7,
+                    "to_step": 9,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "GET /space/space"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+              "request": "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745"
+            },
+            {
+              "step": 4,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747"
+            },
+            {
+              "step": 7,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750"
+            },
+            {
+              "step": 9,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+              "request": "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 2,
+              "to_step": 4,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "from_step": 4,
+              "to_step": 7,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+              "to_value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+              "from_step": 7,
+              "to_step": 9,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                "4678c675-294a-4e6e-8781-416bd624ab5c"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                "4678c675-294a-4e6e-8781-416bd624ab5c"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "request": "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745"
+                },
+                {
+                  "step": 4,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "request": "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750"
+                },
+                {
+                  "step": 9,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "request": "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "01b90521-1f14-43bf-ade6-dcbcb816b064",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 2,
+                  "to_step": 4,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "to_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "from_step": 4,
+                  "to_step": 7,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "4678c675-294a-4e6e-8781-416bd624ab5c",
+                  "to_value": "1e0ac10c-c4bf-4e4e-83cc-8afc77233113",
+                  "from_step": 7,
+                  "to_step": 9,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792744",
+          "GET /space/space?cguid=01b90521-1f14-43bf-ade6-dcbcb816b064&_pjax=%23layout-content&_=1744248792745",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792746",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792747",
+          "GET /space/space/about?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792748",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792749",
+          "GET /space/space?cguid=4678c675-294a-4e6e-8781-416bd624ab5c&_pjax=%23layout-content&_=1744248792750",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792751",
+          "GET /space/space?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792752",
+          "GET /space/space/about?cguid=1e0ac10c-c4bf-4e4e-83cc-8afc77233113&_pjax=%23layout-content&_=1744248792753"
+        ]
+      },
+      {
+        "session_id": "combined_192",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "72c91617-517b-4e81-8302-a331fa4754f5",
+                "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+              ],
+              "steps": [
+                2,
+                5,
+                14
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "72c91617-517b-4e81-8302-a331fa4754f5"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "request": "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                  "request": "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "to_value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                  "from_step": 5,
+                  "to_step": 14,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                    "request": "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765"
+                  },
+                  {
+                    "step": 5,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768"
+                  },
+                  {
+                    "step": 14,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                    "request": "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 2,
+                    "to_step": 5,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "to_value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                    "from_step": 5,
+                    "to_step": 14,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "GET /space/space"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "72c91617-517b-4e81-8302-a331fa4754f5",
+              "request": "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765"
+            },
+            {
+              "step": 5,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768"
+            },
+            {
+              "step": 14,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+              "request": "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "72c91617-517b-4e81-8302-a331fa4754f5",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 2,
+              "to_step": 5,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "to_value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+              "from_step": 5,
+              "to_step": 14,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "72c91617-517b-4e81-8302-a331fa4754f5",
+                "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "72c91617-517b-4e81-8302-a331fa4754f5",
+                "cb2b351b-491f-4cd9-a4cd-11e2a6360f33"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "request": "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765"
+                },
+                {
+                  "step": 5,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768"
+                },
+                {
+                  "step": 14,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                  "request": "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "72c91617-517b-4e81-8302-a331fa4754f5",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 2,
+                  "to_step": 5,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "to_value": "cb2b351b-491f-4cd9-a4cd-11e2a6360f33",
+                  "from_step": 5,
+                  "to_step": 14,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /like/like/like",
+          "POST /like/like/unlike",
+          "POST /post/post/post",
+          "POST /post/post/edit",
+          "GET /space/spaces",
+          "GET /space/space"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792764",
+          "GET /space/space?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792765",
+          "GET /space/space/about?cguid=72c91617-517b-4e81-8302-a331fa4754f5&_pjax=%23layout-content&_=1744248792766",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792767",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744248792768",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"uXkrsIR5bVXZ4aD6kTwBIrwfl9fdFQ8gCOOsZvWJyUzQLQb0sAs0BI-Nycn-TGZPzXDjlptSO0Rrts9LhsqQeQ==\",\"message\":\"鄂塞股份乳房\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=161",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=161",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=159",
+          "POST /like/like/unlike?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=159",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"uXkrsIR5bVXZ4aD6kTwBIrwfl9fdFQ8gCOOsZvWJyUzQLQb0sAs0BI-Nycn-TGZPzXDjlptSO0Rrts9LhsqQeQ==\",\"message\":\"范文芳为各我\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /post/post/edit?id=162&cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"4gxSna8fzZ3GFJPojMN1M29M6uXd98xFserzBe-4XuiLWH_Zm22UzJB4-tvjsxJeHiOepJuw-CHSv5AonPsH3Q==\",\"Post[message]\":\"暗挖法的哇额范文芳为各我\"}",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744248792769",
+          "GET /space/space?cguid=cb2b351b-491f-4cd9-a4cd-11e2a6360f33&_pjax=%23layout-content&_=1744248792770"
+        ]
+      },
+      {
+        "session_id": "combined_194",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "parameter_consistency",
+            "formula": "∀s (ParameterAppearsOrDerived(s,{T1},{P1}) ∧ DistinctTargetParameterValuesAtLeast(s,{T1},{P1},2) ∧ StatusClassIn(s,A_risk,{\"2xx\"}) ∧ ApiStatusClassIn(s,{\"GET /space/space\"},{\"2xx\"}) → RatedParameterRisk(s,\"BOLA\",\"medium\",\"空间对象 cguid 越权访问风险\"))",
+            "meaning": "如果目标 API 中出现关键参数，但该参数没有按正常业务上下文传递、绑定或保持一致，并且响应状态码证据支持该场景，则产生参数一致性风险评级。",
+            "hit": {
+              "reason": "parameter_value_switch",
+              "parameter": "cguid",
+              "distinct_value_count": 3,
+              "values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "steps": [
+                2,
+                8,
+                11,
+                15
+              ],
+              "examples": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                },
+                {
+                  "step": 15,
+                  "api": "GET /space/space",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804",
+                  "status": 0,
+                  "observed_parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802"
+                },
+                {
+                  "step": 15,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+                }
+              ],
+              "key_context_steps": [],
+              "changed_parameters": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "from_step": 2,
+                  "to_step": 8,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 8,
+                  "to_step": 11,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ],
+              "parameter_context": {
+                "parameter": "cguid",
+                "target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "a7d44b2f-9725-4573-a922-7713508a53b9"
+                ],
+                "context_values": [],
+                "unexpected_target_values": [
+                  "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "a7d44b2f-9725-4573-a922-7713508a53b9"
+                ],
+                "missing_from_context": true,
+                "target_occurrences": [
+                  {
+                    "step": 2,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797"
+                  },
+                  {
+                    "step": 8,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                    "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799"
+                  },
+                  {
+                    "step": 11,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802"
+                  },
+                  {
+                    "step": 15,
+                    "api": "GET /space/space",
+                    "status": 0,
+                    "parameter": "cguid",
+                    "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+                  }
+                ],
+                "context_occurrences": [],
+                "value_changes_in_target": [
+                  {
+                    "parameter": "cguid",
+                    "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                    "to_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                    "from_step": 2,
+                    "to_step": 8,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  },
+                  {
+                    "parameter": "cguid",
+                    "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                    "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                    "from_step": 8,
+                    "to_step": 11,
+                    "from_api": "GET /space/space",
+                    "to_api": "GET /space/space",
+                    "from_status": 0,
+                    "to_status": 0
+                  }
+                ]
+              },
+              "status_evidence": {
+                "target_api_scope_status_unmatched": {
+                  "target_api_scope": [
+                    "GET /space/space"
+                  ],
+                  "expected_classes": [
+                    "2xx"
+                  ],
+                  "note": "参数相关 API 状态码证据未匹配；不阻断参数规则命中。"
+                },
+                "status_code_analysis": "请求 GET /space/space 成功返回 2xx 且该 cguid 未在上游列表 GET /space/spaces 的响应内容中出现；或不同用户尝试访问同一 cguid。\n状态码分析\nGET /space/spaces -> cguid (from response) -> GET /space/space?cguid=<id>\n正常流程下，cguid 应从 GET /space/spaces 返回的可访问空间列表中获取；若请求中的 cguid 来源不明或未在列表权限范围内，则存在越权风险。\nunknown_response_field\n19\n全序列状态码均为 unknown (0)，无法确认请求是否成功返回了数据或被拦截。\nGET /space/space 的状态码未知，无法直接确认越权是否成功，需结合响应长度或内容判断。\n由于缺乏 2xx/4xx 等有效状态码证据，无法确认攻击是否实际生效，风险等级定为 medium；若确认返回 2xx 则可提升为 high。"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797"
+            },
+            {
+              "step": 8,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+              "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799"
+            },
+            {
+              "step": 11,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802"
+            },
+            {
+              "step": 15,
+              "api": "GET /space/space",
+              "status": 0,
+              "parameter": "cguid",
+              "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+            }
+          ],
+          "changed_parameters": [
+            {
+              "parameter": "cguid",
+              "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+              "to_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+              "from_step": 2,
+              "to_step": 8,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            },
+            {
+              "parameter": "cguid",
+              "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+              "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+              "from_step": 8,
+              "to_step": 11,
+              "from_api": "GET /space/space",
+              "to_api": "GET /space/space",
+              "from_status": 0,
+              "to_status": 0
+            }
+          ],
+          "parameter_contexts": [
+            {
+              "parameter": "cguid",
+              "target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "context_values": [],
+              "unexpected_target_values": [
+                "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                "a7d44b2f-9725-4573-a922-7713508a53b9"
+              ],
+              "missing_from_context": true,
+              "target_occurrences": [
+                {
+                  "step": 2,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "request": "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "request": "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802"
+                },
+                {
+                  "step": 15,
+                  "api": "GET /space/space",
+                  "status": 0,
+                  "parameter": "cguid",
+                  "value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "request": "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+                }
+              ],
+              "context_occurrences": [],
+              "value_changes_in_target": [
+                {
+                  "parameter": "cguid",
+                  "from_value": "5f406c6e-391e-4d52-aece-c01e1fb3faa1",
+                  "to_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "from_step": 2,
+                  "to_step": 8,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                },
+                {
+                  "parameter": "cguid",
+                  "from_value": "a7d44b2f-9725-4573-a922-7713508a53b9",
+                  "to_value": "1a14826b-23b7-4def-a7da-0cc5053a5ede",
+                  "from_step": 8,
+                  "to_step": 11,
+                  "from_api": "GET /space/space",
+                  "to_api": "GET /space/space",
+                  "from_status": 0,
+                  "to_status": 0
+                }
+              ]
+            }
+          ]
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space",
+          "GET /space/space/about",
+          "GET /space/spaces",
+          "GET /space/space",
+          "POST /post/post/post",
+          "POST /like/like/like",
+          "GET /space/spaces",
+          "GET /space/space"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /space/space?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1&_pjax=%23layout-content&_=1744249514797",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"是否为算法 v\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=164",
+          "POST /post/post/post?cguid=5f406c6e-391e-4d52-aece-c01e1fb3faa1 BODY {\"_csrf\":\"09nvnK7LEs8Nur_t2CeQEty8dpwfcuh58Eh2SOn-xKG6jcLYmrlLnlvW1t63V_d_rdMC3Vk13B2THRVlmr2dlA==\",\"message\":\"大概他如果还是\",\"containerGuid\":\"5f406c6e-391e-4d52-aece-c01e1fb3faa1\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=165",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514798",
+          "GET /space/space?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514799",
+          "GET /space/space/about?cguid=a7d44b2f-9725-4573-a922-7713508a53b9&_pjax=%23layout-content&_=1744249514800",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514801",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514802",
+          "POST /post/post/post?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede BODY {\"_csrf\":\"omMqmj2RlEeZNS5brT7mBVjBf9ZcF1gd-6xC4N5Q3k3LNwfeCePNFs9ZR2jCToFoKa4LlxpQbHmY-SHNrROHeA==\",\"message\":\"热狗人\",\"containerGuid\":\"1a14826b-23b7-4def-a7da-0cc5053a5ede\",\"containerClass\":\"humhub\\\\modules\\\\space\\\\models\\\\Space\"}",
+          "POST /like/like/like?contentModel=humhub%5Cmodules%5Cpost%5Cmodels%5CPost&contentId=166",
+          "GET /space/spaces?_pjax=%23layout-content&_=1744249514803",
+          "GET /space/space?cguid=1a14826b-23b7-4def-a7da-0cc5053a5ede&_pjax=%23layout-content&_=1744249514804"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,988 @@
+{
+  "instructions": [
+    "先根据 normal_hit_sessions 分析为什么该规则在正常样本中误报。",
+    "false_positive_reason 必须具体到 API、参数、阈值、上下文缺失或正常业务行为。",
+    "只针对 target_fol_id 给出 1 到 3 个候选修改。",
+    "优先选择保守修改：提高阈值、增加上下文排除、补充前置条件、收窄 API 范围。",
+    "检测执行以 dimension/scope/detector 为准，formula 只作为一阶逻辑展示；如果修改公式语义，必须同步修改 modified_scope 或 modified_expression 对象中的 scope/detector。",
+    "replace_expression 可以同时填写 modified_scope 和 modified_expression；modified_expression 可为完整 expression 对象，也可仅为新的 formula 字符串。",
+    "不要新增规则，不要修改其他 fol_id，不要使用证据中不存在的 API 或参数。",
+    "disable 只能在规则语义和正常证据完全冲突时提出。"
+  ],
+  "allowed_actions": [
+    "add_context_requirement",
+    "add_precondition",
+    "change_dimension",
+    "disable",
+    "narrow_api_scope",
+    "raise_threshold",
+    "replace_expression"
+  ],
+  "candidate_schema": {
+    "fol_id": "目标规则 ID",
+    "action": "raise_threshold|add_context_requirement|add_precondition|narrow_api_scope|change_dimension|replace_expression|disable",
+    "expression_index": "从 1 开始；disable 可为 null",
+    "new_threshold": "raise_threshold 时填写整数，否则 null",
+    "new_dimension": "change_dimension 时填写，否则空字符串",
+    "modified_scope": "scope 增量或替换内容；可与 replace_expression 同时填写",
+    "modified_expression": "replace_expression 时可填写完整 expression 对象，或仅填写新的 formula 字符串",
+    "rationale": "为什么能降低误报"
+  },
+  "required_output": {
+    "false_positive_reason": "误报原因分析",
+    "candidates": []
+  },
+  "accepted_history": [],
+  "evidence": {
+    "objective": "逐规则降低正常样本误报。只有候选修改经回放后降低该规则误报分数才会被接受。",
+    "target_fol_id": "FOL-C21-S2",
+    "false_positive_threshold": {
+      "target_rule_fp_rate": 0.01,
+      "min_rule_fp_sessions": 1
+    },
+    "current_rule_replay": {
+      "session_count": 2428,
+      "false_positive_session_count": 113,
+      "false_positive_hit_count": 113,
+      "false_positive_rate": 0.04654036243822076
+    },
+    "rule": {
+      "fol_id": "FOL-C21-S2",
+      "scenario_title": "高频用户搜索接口导致的资源消耗风险",
+      "security_type": "RESOURCE_CONSUMPTION",
+      "risk_level": "medium",
+      "activity_abstraction": {
+        "activities": [
+          {
+            "symbol": "A1",
+            "label": "GET /user/people"
+          },
+          {
+            "symbol": "A2",
+            "label": "POST /user/profile/follow"
+          }
+        ],
+        "normal_chain": [
+          "A1",
+          "A2"
+        ],
+        "risky_chain": [
+          "A1",
+          "A1",
+          "A1"
+        ],
+        "possible_violation_chain": [
+          "A1",
+          "A1",
+          "A1"
+        ],
+        "missing_or_reordered_activity": "A2",
+        "missing_or_reordered_label": "POST /user/profile/follow",
+        "violated_order_constraint": "搜索接口被高频重复调用，超出正常人工操作频率",
+        "sequence_subtype": "repeated_call",
+        "authorization_precheck": {
+          "precheck_required": false,
+          "precheck_api": "",
+          "required_response_keywords": [],
+          "max_interval_seconds": 0,
+          "browser_context_required": false
+        },
+        "risk_target_activity": "A1",
+        "related_apis": [
+          "GET /user/people"
+        ]
+      },
+      "logic_expressions": [
+        {
+          "dimension": "sequence_order",
+          "scope": {
+            "mode": "repeated_call",
+            "activity": "A1",
+            "activity_label": "GET /user/people",
+            "threshold": "3",
+            "status_code_constraints": {
+              "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+            }
+          },
+          "detector": {
+            "engine": "sequence_order",
+            "mode": "repeated_call",
+            "required_activity": "",
+            "target_activity": "",
+            "activity": "A1",
+            "threshold": 3,
+            "api_match": "exact",
+            "ignore_apis": [],
+            "status_code_constraints": {
+              "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+            }
+          },
+          "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+          "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。"
+        }
+      ]
+    },
+    "normal_hit_sessions": [
+      {
+        "session_id": "combined_650",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "repeated_call",
+              "api": "GET /user/people",
+              "threshold": 3,
+              "count": 3,
+              "steps": [
+                2,
+                8,
+                13
+              ],
+              "requests": [
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people"
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 13,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "count_within_same_parameter": "",
+              "counting_parameter_value": "",
+              "status_evidence": {
+                "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 13,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 13,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /notification/list",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /notification/list",
+          "GET /space/space",
+          "GET /space/spaces",
+          "GET /user/people"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /notification/list?from=0",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /user/account/edit",
+          "GET /notification/list?from=0",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/spaces",
+          "GET /user/people"
+        ]
+      },
+      {
+        "session_id": "combined_712",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "repeated_call",
+              "api": "GET /user/people",
+              "threshold": 3,
+              "count": 4,
+              "steps": [
+                2,
+                7,
+                11,
+                16
+              ],
+              "requests": [
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people"
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 7,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 11,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "count_within_same_parameter": "",
+              "counting_parameter_value": "",
+              "status_evidence": {
+                "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 7,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 11,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 7,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 11,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d2fdb62f-c8a9-4ce9-864d-1681883255a0",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /notification/list?from=0",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=0566b5df-b6e0-4260-bfd0-f5eccc9a7e0c",
+          "GET /notification/list?from=0"
+        ]
+      },
+      {
+        "session_id": "combined_718",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "repeated_call",
+              "api": "GET /user/people",
+              "threshold": 3,
+              "count": 4,
+              "steps": [
+                2,
+                8,
+                12,
+                17
+              ],
+              "requests": [
+                "GET /user/people?keyword=Administration",
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people"
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=Administration"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 17,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=Administration"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 17,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "count_within_same_parameter": "",
+              "counting_parameter_value": "",
+              "status_evidence": {
+                "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=Administration"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 12,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 17,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=Administration"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 12,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 17,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /notification/list",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /notification/list",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/people?keyword=Administration",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /notification/list?from=0",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /admin/module/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /notification/list?from=0",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c&_pjax=%23layout-content&_=1736998434045",
+          "GET /notification/list?from=0",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase"
+        ]
+      },
+      {
+        "session_id": "combined_733",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "repeated_call",
+              "api": "GET /user/people",
+              "threshold": 3,
+              "count": 4,
+              "steps": [
+                4,
+                8,
+                12,
+                16
+              ],
+              "requests": [
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people",
+                "GET /user/people"
+              ],
+              "key_context_steps": [
+                {
+                  "step": 4,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 4,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 8,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 12,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                }
+              ],
+              "count_within_same_parameter": "",
+              "counting_parameter_value": "",
+              "status_evidence": {
+                "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 4,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 12,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 4,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 8,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 12,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /notification/list"
+        ],
+        "raw_sequence": [
+          "GET /user/account/edit",
+          "GET /user/account/change-username",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /notification/list?from=0",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /notification/list?from=0",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /notification/list?from=0",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /notification/list?from=0"
+        ]
+      },
+      {
+        "session_id": "combined_744",
+        "expression_hits": [
+          {
+            "expression_index": 1,
+            "dimension": "sequence_order",
+            "formula": "∀s (CountInSession(s,A1) ≥ 3 → RatedSequenceOrderRisk(s,\"RESOURCE_CONSUMPTION\",\"medium\",\"高频用户搜索接口导致的资源消耗风险\"))",
+            "meaning": "如果会话中出现跳步、越序、关键步骤缺失或敏感步骤过早出现，并且响应状态码证据支持该场景，则产生序列顺序风险评级。",
+            "hit": {
+              "reason": "repeated_call",
+              "api": "GET /user/people",
+              "threshold": 3,
+              "count": 3,
+              "steps": [
+                2,
+                9,
+                16
+              ],
+              "requests": [
+                "GET /user/people?keyword=HumHub",
+                "GET /user/people",
+                "GET /user/people?keyword=Administration"
+              ],
+              "key_context_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=HumHub"
+                },
+                {
+                  "step": 9,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=Administration"
+                }
+              ],
+              "key_target_steps": [
+                {
+                  "step": 2,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=HumHub"
+                },
+                {
+                  "step": 9,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people"
+                },
+                {
+                  "step": 16,
+                  "api": "GET /user/people",
+                  "status": 0,
+                  "request": "GET /user/people?keyword=Administration"
+                }
+              ],
+              "count_within_same_parameter": "",
+              "counting_parameter_value": "",
+              "status_evidence": {
+                "status_code_analysis": "22\n参数画像显示 request_count 达 1370 次，证明存在大量请求，符合资源消耗特征\n请求量证据明确，但危害程度相对 BOLA 较低，调整为 Medium 风险"
+              }
+            }
+          }
+        ],
+        "hit_context_summary": {
+          "key_context_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=HumHub"
+            },
+            {
+              "step": 9,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=Administration"
+            }
+          ],
+          "key_target_steps": [
+            {
+              "step": 2,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=HumHub"
+            },
+            {
+              "step": 9,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people"
+            },
+            {
+              "step": 16,
+              "api": "GET /user/people",
+              "status": 0,
+              "request": "GET /user/people?keyword=Administration"
+            }
+          ],
+          "changed_parameters": [],
+          "parameter_contexts": []
+        },
+        "api_sequence": [
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space",
+          "GET /space/manage",
+          "GET /space/manage/security",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase"
+        ],
+        "raw_sequence": [
+          "GET /space/spaces",
+          "GET /user/people?keyword=HumHub",
+          "GET /space/space?cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/manage?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people",
+          "GET /space/space?tour=1&cguid=d68bbc02-db72-40c2-b31e-4e174d7ca81c",
+          "GET /space/manage?cguid=0ce7f0af-74e4-4890-9adf-fea87d42fea1",
+          "GET /space/manage/security?cguid=e782abba-254b-4d69-ae2c-6417c56768a3",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase",
+          "GET /space/spaces",
+          "GET /user/people?keyword=Administration",
+          "GET /space/space?tour=1&cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /space/manage?cguid=21e1bb35-3277-4044-acf4-107f3c0b3b41",
+          "GET /space/manage/security?cguid=b177d8bb-b88c-40d3-967a-cdf4e3609035",
+          "GET /admin/module/list",
+          "GET /marketplace/purchase"
+        ]
+      }
+    ]
+  }
+}
